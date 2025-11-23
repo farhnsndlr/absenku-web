@@ -1,16 +1,3 @@
-<?php
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\CourseController;
-use Illuminate\Support\Facades\Auth;
-
-// ====================================================
-// RUTE PUBLIC - Landing Page
-// ====================================================
 Route::get('/', function () {
     return view('landing');
 })->name('landing');
