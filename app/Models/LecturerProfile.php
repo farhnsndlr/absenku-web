@@ -18,7 +18,7 @@ class LecturerProfile extends Model
     // Relasi ke User (One-to-One)
     public function user()
     {
-        return $this->hasOne(User::class, 'profile_id');
+        return $this->morphOne(User::class, 'profile');
     }
 
     // Relasi ke Mata Kuliah yang diampu (One-to-Many)
