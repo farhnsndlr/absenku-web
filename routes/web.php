@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () { feat/landing-page
+Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
@@ -75,6 +77,22 @@ Route::middleware('auth')->group(function () {
                 return "Halaman Mahasiswa Dashboard (Laravel 12)";
             })->name('dashboard');
 
+            // Route Sementara untuk Preview Student UI
+Route::prefix('student')->name('student.')->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('student.dashboard');
+    })->name('dashboard');
+
+    Route::get('/attendance', function () {
+        return view('student.attendance.create');
+    })->name('attendance');
+
+});
+
+
+
             // Halaman Absen dll
+
         });
 });
