@@ -2,8 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CourseController;
 use Illuminate\Support\Facades\Auth;
 
+// ====================================================
+// RUTE PUBLIC - Landing Page
+// ====================================================
 Route::get('/', function () {
     return view('landing');
 })->name('landing');
@@ -12,42 +19,42 @@ Route::get('/', function () {
 // RUTE GUEST (Belum Login)
 // ====================================================
 Route::middleware('guest')->group(function () {
-    // Menampilkan Form Login
+    // Login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    // Memproses Login
     Route::post('/login', [AuthController::class, 'login']);
 
-    Route::get('/register', function () {
-        return view('auth.register');
-    })->name('register');
+    // Register
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
 // ====================================================
 // RUTE AUTHENTICATED (Sudah Login)
 // ====================================================
 Route::middleware('auth')->group(function () {
-
+    // Logout
     Route::post('/logout', function () {
         Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
-
 
     // ------------------------------------------------
     // GROUP: ADMIN (Role: admin)
     // ------------------------------------------------
     Route::prefix('admin')
         ->name('admin.')
-        ->middleware('role:admin') // <-- Panggil alias yang tadi didaftarkan
+        ->middleware('role:admin')
         ->group(function () {
+            // Dashboard Admin
+            Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-            Route::get('/dashboard', function () {
-                return "Halaman Admin Dashboard (Laravel 12)";
-            })->name('dashboard');
-
-            // CRUD Locations dll
+            // Resource Routes
+            Route::resource('users', UserController::class);
+            Route::resource('courses', CourseController::class);
+            Route::resource('locations', LocationController::class);
         });
-
 
     // ------------------------------------------------
     // GROUP: LECTURER (Role: lecturer)
@@ -56,14 +63,12 @@ Route::middleware('auth')->group(function () {
         ->name('lecturer.')
         ->middleware('role:lecturer')
         ->group(function () {
-
             Route::get('/dashboard', function () {
-                return "Halaman Dosen Dashboard (Laravel 12)";
+                return view('lecturer.dashboard');
             })->name('dashboard');
 
-            // Manajemen Sesi dll
+            // Tambahkan route lecturer lainnya di sini
         });
-
 
     // ------------------------------------------------
     // GROUP: STUDENT (Role: student)
@@ -72,27 +77,14 @@ Route::middleware('auth')->group(function () {
         ->name('student.')
         ->middleware('role:student')
         ->group(function () {
-
             Route::get('/dashboard', function () {
-                return "Halaman Mahasiswa Dashboard (Laravel 12)";
+                return view('student.dashboard');
             })->name('dashboard');
 
-            // Route Sementara untuk Preview Student UI
-Route::prefix('student')->name('student.')->group(function () {
+            Route::get('/attendance', function () {
+                return view('student.attendance.create');
+            })->name('attendance');
 
-    Route::get('/dashboard', function () {
-        return view('student.dashboard');
-    })->name('dashboard');
-
-    Route::get('/attendance', function () {
-        return view('student.attendance.create');
-    })->name('attendance');
-
-});
-
-
-
-            // Halaman Absen dll
-
+            // Tambahkan route student lainnya di sini
         });
 });
