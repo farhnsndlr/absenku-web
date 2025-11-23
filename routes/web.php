@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ProfileController;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/logout', function () {
         return redirect()->route('landing');
     });
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 
 
     // --- Role Based Routes ---
