@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
 @section('title', 'Dashboard Superadmin')
-@section('page-title', 'Dasboard Superadmin')
+@section('page-title', 'Dashboard Superadmin')
 
 @section('navigation')
     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg font-medium">
@@ -11,6 +11,7 @@
         <span>Beranda</span>
     </a>
 
+    {{-- Pastikan rute-rute di bawah ini sudah ada di web.php, jika belum, biarkan href="#" --}}
     <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition font-medium">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -33,6 +34,7 @@
         <span>Lokasi</span>
     </a>
 
+    {{-- Menu Laporan (Contoh, belum ada rutenya) --}}
     <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition font-medium">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -42,9 +44,7 @@
 @endsection
 
 @section('content')
-    <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- Total Pengguna Card -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
@@ -63,12 +63,11 @@
             </p>
         </div>
 
-        <!-- Total Lokasi Card -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex-1">
                     <p class="text-sm text-gray-600 mb-2">Total Lokasi</p>
-                    <h3 class="text-4xl font-bold text-gray-900">{{ $stats['total_locations'] }}</h3>
+                    <h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_locations']) }}</h3>
                 </div>
                 <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,52 +82,50 @@
         </div>
     </div>
 
-    <!-- Chart Section -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="mb-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-1">Lalu Lintas Penggunaan Sistem</h3>
-            <p class="text-sm text-gray-600">Pengguna aktif bulanan dan permintaan API</p>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Statistik Tahun Ini ({{ date('Y') }})</h3>
+            <p class="text-sm text-gray-600">Pertumbuhan pengguna baru dan total aktivitas absensi bulanan</p>
         </div>
 
-        <!-- Chart Canvas -->
         <div class="h-80 relative">
             <canvas id="usageChart"></canvas>
         </div>
 
-        <!-- Legend -->
         <div class="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
             <div class="flex items-center gap-2">
                 <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span class="text-sm text-gray-700">Pengguna Aktif</span>
+                <span class="text-sm text-gray-700">Registrasi Baru</span>
             </div>
             <div class="flex items-center gap-2">
                 <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
-                <span class="text-sm text-gray-700">Permintaan API</span>
+                <span class="text-sm text-gray-700">Total Aktivitas Absensi</span>
             </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
+{{-- Chart.js Library --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    // Data dummy untuk chart (nanti bisa diganti dengan data real dari backend)
-    const chartData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'],
-        activeUsers: [300, 380, 320, 450, 550, 420, 710, 870],
-        apiRequests: [400, 300, 350, 550, 450, 610, 500, 790]
-    };
+    // MENGAMBIL DATA RILL DARI CONTROLLER MENGGUNAKAN BLADE JSON_ENCODE
+    // Data ini dikirim dari AdminDashboardController.php
+    const labels = {!! json_encode($monthsLabels) !!};
+    const newUsersData = {!! json_encode($newUsersData) !!};
+    const attendanceActivityData = {!! json_encode($attendanceActivityData) !!};
 
     const ctx = document.getElementById('usageChart').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: chartData.labels,
+            labels: labels, // Gunakan label bulan dari controller
             datasets: [
                 {
-                    label: 'Pengguna Aktif',
-                    data: chartData.activeUsers,
-                    borderColor: '#f97316',
+                    label: 'Registrasi Baru', // Ubah label dataset 1
+                    data: newUsersData,     // Gunakan data riil dataset 1
+                    borderColor: '#f97316', // Warna oranye
                     backgroundColor: 'transparent',
                     tension: 0.4,
                     borderWidth: 2.5,
@@ -139,9 +136,9 @@
                     pointHoverRadius: 6
                 },
                 {
-                    label: 'Permintaan API',
-                    data: chartData.apiRequests,
-                    borderColor: '#14b8a6',
+                    label: 'Total Aktivitas Absensi', // Ubah label dataset 2
+                    data: attendanceActivityData,   // Gunakan data riil dataset 2
+                    borderColor: '#14b8a6', // Warna teal
                     backgroundColor: 'transparent',
                     tension: 0.4,
                     borderWidth: 2.5,
@@ -162,7 +159,7 @@
             },
             plugins: {
                 legend: {
-                    display: false
+                    display: false // Legend sudah dibuat custom di HTML di atas
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -174,41 +171,40 @@
                     bodyFont: {
                         size: 12
                     },
-                    cornerRadius: 8
+                    cornerRadius: 8,
+                    // Menambahkan callback agar tooltip lebih rapi (opsional, menambah pemisah ribuan)
+                    callbacks: {
+                         label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                // Format angka dengan pemisah ribuan ala Indonesia
+                                label += new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    border: {
-                        display: false
-                    },
-                    grid: {
-                        color: '#f3f4f6',
-                        drawTicks: false
-                    },
+                    border: { display: false },
+                    grid: { color: '#f3f4f6', drawTicks: false },
                     ticks: {
                         padding: 10,
                         color: '#6b7280',
-                        font: {
-                            size: 12
-                        }
+                        font: { size: 12 },
+                        // Pastikan tick sumbu Y hanya menampilkan angka bulat
+                        callback: function(value) {if (value % 1 === 0) {return value;}}
                     }
                 },
                 x: {
-                    border: {
-                        display: false
-                    },
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        padding: 10,
-                        color: '#6b7280',
-                        font: {
-                            size: 12
-                        }
-                    }
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { padding: 10, color: '#6b7280', font: { size: 12 } }
                 }
             }
         }
