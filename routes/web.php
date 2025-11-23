@@ -3,88 +3,90 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\LecturerDashboardController;
+use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
-use Illuminate\Support\Facades\Auth;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
 // ====================================================
-Route::get('/', function () {
-    return view('landing');
-})->name('landing');
+// Jika halaman ini hanya menampilkan view statis tanpa data,
+// Route::view() lebih ringkas.
+Route::view('/', 'landing')->name('landing');
+
 
 // ====================================================
-// RUTE GUEST (Belum Login)
+// RUTE GUEST (Hanya untuk yang belum login)
 // ====================================================
 Route::middleware('guest')->group(function () {
-    // Login
+    // Login Routes
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 
-    // Register
+    // Register Routes
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
 
+
 // ====================================================
-// RUTE AUTHENTICATED (Sudah Login)
+// RUTE AUTHENTICATED (Harus login dulu)
 // ====================================================
 Route::middleware('auth')->group(function () {
-    // Logout
-    Route::post('/logout', function () {
-        Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
-        return redirect('/login');
-    })->name('logout');
 
-    // ------------------------------------------------
-    // GROUP: ADMIN (Role: admin)
-    // ------------------------------------------------
+    // --- Global Authenticated Routes ---
+
+    // Logout (Sebaiknya dipindah ke Controller agar web.php bersih)
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/logout', function () {
+        return redirect()->route('landing');
+    });
+
+
+    // --- Role Based Routes ---
+
+    // 1. GROUP: ADMIN (Role: admin)
     Route::prefix('admin')
         ->name('admin.')
         ->middleware('role:admin')
         ->group(function () {
-            // Dashboard Admin
+            // Dashboard
             Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-            // Resource Routes
-            Route::resource('users', UserController::class);
-            Route::resource('courses', CourseController::class);
-            Route::resource('locations', LocationController::class);
+            // Resources (CRUD)
+            Route::resources([
+                'users'     => UserController::class,
+                'courses'   => CourseController::class,
+                'locations' => LocationController::class,
+            ]);
         });
 
-    // ------------------------------------------------
-    // GROUP: LECTURER (Role: lecturer)
-    // ------------------------------------------------
+
+    // 2. GROUP: LECTURER (Role: lecturer)
     Route::prefix('dosen')
         ->name('lecturer.')
         ->middleware('role:lecturer')
         ->group(function () {
-            Route::get('/dashboard', function () {
-                return view('lecturer.dashboard');
-            })->name('dashboard');
+            Route::get('/dashboard', [LecturerDashboardController::class, 'index'])->name('dashboard');
 
-            // Tambahkan route lecturer lainnya di sini
+            // Tambahkan route khusus dosen lainnya di sini, misal: manajemen sesi kelas
+            // Route::resource('sessions', LecturerSessionController::class);
         });
 
-    // ------------------------------------------------
-    // GROUP: STUDENT (Role: student)
-    // ------------------------------------------------
+
+    // 3. GROUP: STUDENT (Role: student)
     Route::prefix('mahasiswa')
         ->name('student.')
         ->middleware('role:student')
         ->group(function () {
-            Route::get('/dashboard', function () {
-                return view('student.dashboard');
-            })->name('dashboard');
+            // GUNAKAN CONTROLLER, JANGAN CLOSURE FUNCTION
+            // Dashboard biasanya butuh data (misal: jadwal hari ini, dll), jadi sebaiknya pakai controller.
+            Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
-            Route::get('/attendance', function () {
-                return view('student.attendance.create');
-            })->name('attendance');
-
-            // Tambahkan route student lainnya di sini
+            // Halaman Absensi
+            Route::get('/attendance', [StudentDashboardController::class, 'attendanceForm'])->name('attendance');
+            // Route::post('/attendance', [StudentDashboardController::class, 'submitAttendance'])->name('attendance.submit');
         });
 });

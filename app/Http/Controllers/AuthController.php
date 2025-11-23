@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User; // Jangan lupa import Model User
+use App\Models\User; // Import Model User
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash; // Import Hash untuk password
@@ -19,7 +19,6 @@ class AuthController extends Controller
     }
 
     /**
-     * --- BAGIAN INI YANG KEMARIN HILANG ---
      * Menampilkan form register.
      */
     public function showRegisterForm()
@@ -36,7 +35,8 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed', // pastikan ada input password_confirmation di view
+            // Pastikan di view register ada input dengan name="password_confirmation"
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         // 2. Simpan User ke Database
@@ -44,13 +44,16 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'student', // Default role mahasiswa saat register mandiri
+            // Default role mahasiswa saat register mandiri.
+            // Jika ingin dosen/admin mendaftar, sebaiknya lewat fitur kelola user di dashboard admin, bukan register publik ini.
+            'role' => 'student',
         ]);
 
         // 3. Langsung Login otomatis setelah daftar
         Auth::login($user);
 
-        // 4. Redirect ke dashboard
+        // 4. Redirect ke dashboard student
+        // Menggunakan helper route() lebih aman daripada hardcode URL
         return redirect()->route('student.dashboard');
     }
 
@@ -66,6 +69,7 @@ class AuthController extends Controller
         ]);
 
         // 2. Coba Login (Attempt)
+        // Parameter kedua true/false berdasarkan input 'remember' (checkbox "Ingat Saya")
         if (Auth::attempt($credentials, $request->filled('remember'))) {
 
             $request->session()->regenerate();
@@ -80,15 +84,17 @@ class AuthController extends Controller
                 case 'student':
                     return redirect()->route('student.dashboard');
                 default:
+                    // Jika role tidak dikenali, logout paksa demi keamanan
                     Auth::logout();
                     return redirect()->route('login')->withErrors([
-                        'email' => 'Role pengguna tidak valid.',
+                        'email' => 'Role pengguna tidak valid atau belum diatur.',
                     ]);
             }
         }
 
         // 4. Jika Login GAGAL
         throw ValidationException::withMessages([
+            // trans('auth.failed') mengambil pesan dari file bahasa resources/lang/en/auth.php
             'email' => trans('auth.failed'),
         ]);
     }
@@ -96,11 +102,21 @@ class AuthController extends Controller
     /**
      * Logout user.
      */
+    /**
+     * Logout user.
+     */
     public function logout(Request $request)
     {
+        // Cek status SEBELUM logout
+
+        // Proses Logout
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+
+        // Cek status SESUDAH logout dan matikan proses
+
+        // Baris ini tidak akan dieksekusi karena ada dd() di atasnya
+        return redirect()->route('landing');
     }
 }

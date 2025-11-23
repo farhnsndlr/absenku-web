@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@absenku.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
-            // profile_id null karena admin tidak punya profil khusus
+            // profile_id dan profile_type akan otomatis NULL karena tidak ada relasi profil
         ]);
         $this->command->info('✅ User Admin created.');
 
@@ -39,10 +39,9 @@ class DatabaseSeeder extends Seeder
         $location = Location::create([
             'location_name' => 'Kampus Utama - Gedung A',
             // # GANTI: Gunakan koordinat tempat kamu testing sekarang!
-            // Tips: Buka Google Maps, klik kanan lokasi kamu, copy lat/long-nya.
             'latitude' => -6.376581274282782,
             'longitude' => 106.88655029256103,
-            'radius_meters' => 100, // Radius 200 meter
+            'radius_meters' => 100, // Radius 100 meter
         ]);
         $this->command->info('✅ Location created (Lat: ' . $location->latitude . ', Long: ' . $location->longitude . ')');
 
@@ -50,23 +49,25 @@ class DatabaseSeeder extends Seeder
         // ---------------------------------------------------
         // 3. Buat Dosen & Mata Kuliah
         // ---------------------------------------------------
-        // a. Buat Profil Dosen
+        // a. Buat Profil Dosen DULU
         $lecturerProfile = LecturerProfile::create([
             'nid' => '198501012010011001',
             'full_name' => 'Dr. Budi Santoso, M.Kom.',
             'phone_number' => '081298765432',
         ]);
 
-        // b. Buat User Dosen
-        $lecturerUser = User::create([
+        // b. Buat User Dosen MENGGUNAKAN RELASI POLIMORFIK
+        // Kita panggil relasi user() dari profil lecturer, lalu create user baru.
+        // Eloquent akan otomatis mengisi 'profile_id' dan 'profile_type' di tabel users.
+        $lecturerUser = $lecturerProfile->user()->create([
             'name' => 'Budi Santoso',
             'email' => 'dosen@absenku.com',
             'password' => Hash::make('password123'),
             'role' => 'lecturer',
-            'profile_id' => $lecturerProfile->id,
         ]);
 
         // c. Buat Mata Kuliah untuk Dosen ini
+        // Menggunakan ID dari profil dosen yang sudah dibuat
         $course = Course::create([
             'course_code' => 'IF401',
             'course_name' => 'Pemrograman Web Lanjut',
@@ -79,24 +80,24 @@ class DatabaseSeeder extends Seeder
         // ---------------------------------------------------
         // 4. Buat Mahasiswa & Enroll ke Mata Kuliah
         // ---------------------------------------------------
-        // a. Buat Profil Mahasiswa
+        // a. Buat Profil Mahasiswa DULU
         $studentProfile = StudentProfile::create([
             'npm' => '202310001',
             'full_name' => 'Ahmad Farhan',
             'phone_number' => '081312345678',
         ]);
 
-        // b. Buat User Mahasiswa
-        User::create([
+        // b. Buat User Mahasiswa MENGGUNAKAN RELASI POLIMORFIK
+        // Sama seperti dosen, kita gunakan relasi user() dari profil student.
+        $studentUser = $studentProfile->user()->create([
             'name' => 'Farhan Mhs',
             'email' => 'mahasiswa@absenku.com',
             'password' => Hash::make('password123'),
             'role' => 'student',
-            'profile_id' => $studentProfile->id,
         ]);
 
-        // c. Enroll Mahasiswa ke Mata Kuliah tadi (PENTING!)
-        // Menggunakan relasi belongsToMany yang sudah kita buat di Model
+        // c. Enroll Mahasiswa ke Mata Kuliah tadi
+        // Menggunakan relasi belongsToMany (courses) pada model StudentProfile
         $studentProfile->courses()->attach($course->id);
 
         $this->command->info('✅ Student created & enrolled to course.');
@@ -106,7 +107,6 @@ class DatabaseSeeder extends Seeder
         // 5. Buat Sesi Aktif HARI INI
         // ---------------------------------------------------
         // Sesi dibuat mulai dari 1 jam yang lalu sampai 2 jam ke depan dari sekarang.
-        // Jadi saat kamu tes, sesi ini statusnya SEDANG BERLANGSUNG.
         AttendanceSession::create([
             'course_id' => $course->id,
             'session_date' => Carbon::today(), // Tanggal hari ini
@@ -118,6 +118,10 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->command->info('✅ Active Session for TODAY created.');
 
+
+        // ---------------------------------------------------
+        // FINAL: Informasi Login
+        // ---------------------------------------------------
         $this->command->info('---------------------------------------');
         $this->command->info('🎉 SEEDING COMPLETE! Database is ready.');
         $this->command->info('---------------------------------------');

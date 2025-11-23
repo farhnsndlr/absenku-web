@@ -39,7 +39,16 @@
 
                 <div class="hidden md:flex items-center space-x-4">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="text-base font-medium text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition">
+                        {{-- Logika untuk menentukan rute dashboard berdasarkan peran --}}
+                        @php
+                            $dashboardRoute = match(auth()->user()->role) {
+                                'admin' => 'admin.dashboard',
+                                'lecturer' => 'lecturer.dashboard',
+                                'student' => 'student.dashboard',
+                                default => 'login', // Fallback jika role tidak dikenali
+                            };
+                        @endphp
+                        <a href="{{ route($dashboardRoute) }}" class="text-base font-medium text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition">
                             Dashboard
                         </a>
                     @else
@@ -142,7 +151,6 @@
              </div>
         </section>
 
-        <!-- Cara Kerja AbsenKu -->
         <section id="cara-kerja" class="py-24 bg-white relative">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -157,7 +165,6 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
 
-                    <!-- Step 1 -->
                     <div class="flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300">
                         <div class="w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-xl mb-6 shadow-md">
                             1
@@ -168,7 +175,6 @@
                         </p>
                     </div>
 
-                    <!-- Step 2 -->
                     <div class="flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300">
                         <div class="w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-xl mb-6 shadow-md">
                             2
@@ -179,7 +185,6 @@
                         </p>
                     </div>
 
-                    <!-- Step 3 -->
                     <div class="flex flex-col items-center text-center hover:-translate-y-1 transition-all duration-300">
                         <div class="w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold text-xl mb-6 shadow-md">
                             3
@@ -197,7 +202,6 @@
         <section class="bg-gray-50 py-16">
             <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 px-6">
 
-                <!-- Card 1 -->
                 <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
                 <p class="text-gray-700 italic leading-relaxed">
                     "AbsenKu telah merevolusi cara kami mengelola absensi. Sistem ini sangat mudah digunakan, dan informasi real-time yang tersedia sangat berharga bagi mahasiswa maupun dosen."
@@ -211,7 +215,6 @@
                 </div>
                 </div>
 
-                <!-- Card 2 -->
                 <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
                 <p class="text-gray-700 italic leading-relaxed">
                     "Dulu pengecekan absensi adalah tugas yang membosankan, tetapi AbsenKu membuatnya menjadi sangat mudah. Fitur geofencing memastikan keakuratan, dan laporan yang dihasilkan benar-benar menghemat banyak waktu."
@@ -225,7 +228,6 @@
                 </div>
                 </div>
 
-                <!-- Card 3 -->
                 <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
                 <p class="text-gray-700 italic leading-relaxed">
                     "Sebagai mahasiswa, AbsenKu benar-benar luar biasa! Saya dapat dengan mudah melihat riwayat kehadiran dan status setiap kelas. Tidak ada lagi tanda tangan manual atau kebingungan."
@@ -239,7 +241,6 @@
                 </div>
                 </div>
 
-                <!-- Card 4 -->
                 <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
                 <p class="text-gray-700 italic leading-relaxed">
                     “Dengan AbsenKu, administrasi kelas jadi jauh lebih terkontrol. Dosen dapat memantau kehadiran secara cepat, dan mahasiswa merasa lebih transparan. Benar-benar solusi modern untuk dunia perkuliahan.”
@@ -263,7 +264,6 @@
     <footer id="kontak" class="bg-white border-t border-gray-200 mt-20">
         <div class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-10 text-gray-700">
 
-            <!-- Brand -->
             <div>
             <div class="flex items-center space-x-2 mb-3">
                 <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="wd-10 h-10">
@@ -281,7 +281,6 @@
             </div>
             </div>
 
-            <!-- Perusahaan -->
             <div>
             <h3 class="font-semibold mb-4">Perusahaan</h3>
             <ul class="space-y-2 text-sm">
@@ -291,7 +290,6 @@
             </ul>
             </div>
 
-            <!-- Sumber Daya -->
             <div>
             <h3 class="font-semibold mb-4">Sumber daya</h3>
             <ul class="space-y-2 text-sm">
@@ -301,7 +299,6 @@
             </ul>
             </div>
 
-            <!-- Bantuan -->
             <div>
             <h3 class="font-semibold mb-4">Bantuan</h3>
             <ul class="space-y-2 text-sm">

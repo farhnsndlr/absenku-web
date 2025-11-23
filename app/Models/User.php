@@ -6,56 +6,54 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
-        'profile_id',
+        // 'profile_id', // <-- HAPUS INI DARI FILLABLE
+        'profile_id', // Relasi polimorfik akan mengisi ini dan profile_type secara otomatis
+        'profile_type',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
-
+    // Hapus relasi hasOne/belongsTo yang lama untuk lecturerProfile dan studentProfile
+    // Ganti dengan relasi polimorfik 'profile'
     public function profile()
     {
-        if ($this->role === 'student') {
-            return $this->belongsTo(StudentProfile::class, 'profile_id');
-        } elseif ($this->role === 'lecturer') {
-            return $this->belongsTo(LecturerProfile::class, 'profile_id');
+        return $this->morphTo();
+    }
+
+    // Metode helper untuk akses langsung (opsional tapi bagus)
+    public function lecturerProfile()
+    {
+        return $this->profile()->where('profile_type', LecturerProfile::class);
+    }
+
+    public function studentProfile()
+    {
+        return $this->profile()->where('profile_type', StudentProfile::class);
+    }
+
+    // Tambahkan metode ini untuk memastikan akses mudah ke profil yang tepat
+    public function getLecturerProfileAttribute()
+    {
+        if ($this->profile_type === LecturerProfile::class) {
+            return $this->profile;
         }
-        // Kalau role admin, mungkin belum punya profil, return null
+        return null;
+    }
+
+    public function getStudentProfileAttribute()
+    {
+        if ($this->profile_type === StudentProfile::class) {
+            return $this->profile;
+        }
         return null;
     }
 }

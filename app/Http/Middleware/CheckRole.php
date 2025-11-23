@@ -24,6 +24,8 @@ class CheckRole
         $user = Auth::user();
         $allowedRoles = explode(',', $role);
 
+        
+
         if (in_array($user->role, $allowedRoles)) {
             return $next($request);
         }
