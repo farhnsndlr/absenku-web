@@ -1,3 +1,16 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CourseController;
+use Illuminate\Support\Facades\Auth;
+
+// ====================================================
+// RUTE PUBLIC - Landing Page
+// ====================================================
 Route::get('/', function () {
     return view('landing');
 })->name('landing');
@@ -19,24 +32,6 @@ Route::middleware('guest')->group(function () {
 // RUTE AUTHENTICATED (Sudah Login)
 // ====================================================
 Route::middleware('auth')->group(function () {
-
-    // --- TAMBAHAN PENTING (RUTE JEMBATAN) ---
-    // Ini memperbaiki error "Route [dashboard] not defined"
-    Route::get('/dashboard', function () {
-        $user = Auth::user();
-
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        } else if ($user->role === 'lecturer') {
-            return redirect()->route('lecturer.dashboard');
-        } else if ($user->role === 'student') {
-            return redirect()->route('student.dashboard');
-        }
-
-        return redirect('/');
-    })->name('dashboard'); // <--- Nama ini yang dicari landing page
-    // ----------------------------------------
-
     // Logout
     Route::post('/logout', function () {
         Auth::logout();
