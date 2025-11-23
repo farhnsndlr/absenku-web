@@ -9,8 +9,8 @@ use App\Http\Controllers\AuthController;
 // ...
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('landing');
+})->name('landing');
 
 // ====================================================
 // RUTE GUEST (Belum Login)
@@ -20,6 +20,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     // Memproses Login
     Route::post('/login', [AuthController::class, 'login']);
+
+    Route::get('/register', function () {
+        return view('auth.register');
+    })->name('register');
 });
 
 // ====================================================
