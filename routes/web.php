@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () { feat/landing-page
+Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
