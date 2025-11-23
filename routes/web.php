@@ -1,14 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\AuthController;
 
-// Placeholder untuk Controller nanti
-// use App\Http\Controllers\AuthController;
-// ...
-
-Route::get('/', function () {
+Route::get('/', function () { feat/landing-page
     return view('landing');
 })->name('landing');
 
