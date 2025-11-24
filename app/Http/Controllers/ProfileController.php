@@ -30,7 +30,11 @@ class ProfileController extends Controller
             $additionalData['courses_enrolled'] = $user->profile->courses()->get();
         }
 
-        return view('profile.show', compact('user', 'additionalData'));
+        return view('profile.show', [
+            'user' => $user,
+            'additionalData' => $additionalData,
+            'dashboardView' => $this->getDashboardView(),
+        ]);
     }
 
 
