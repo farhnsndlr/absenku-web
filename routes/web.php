@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ProfileController;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
@@ -43,6 +44,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/logout', function () {
         return redirect()->route('landing');
     });
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    // Menampilkan form edit profil
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    // Memproses update profil (menggunakan PATCH)
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Menampilkan form ubah password
+    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
+    // Memproses update password
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 
 
     // --- Role Based Routes ---
