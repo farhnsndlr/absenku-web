@@ -58,7 +58,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Nama Lengkap</label>
-                            <p class="text-gray-900 font-medium">{{ $user->profile->full_name ?? $user->name }}</p>
+                            <p class="text-gray-900 font-medium">{{ $user->name }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Email</label>

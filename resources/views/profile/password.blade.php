@@ -8,7 +8,7 @@
         <h2 class="text-xl font-bold text-gray-900 mb-1">Perbarui Password</h2>
         <p class="text-sm text-gray-500 mb-6">Pastikan password Anda aman dan tidak mudah ditebak.</p>
 
-        <form method="post" action="{{ route('password.update') }}" class="space-y-6">
+                <form method="post" action="{{ route('profile.password.update') }}" class="space-y-6">
             @csrf
             @method('put')
 
