@@ -10,12 +10,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Inter', sans-serif; }
         /* Utility class untuk menyembunyikan elemen saat Alpine memuat */
         [x-cloak] { display: none !important; }
+
+        /* Leaflet Map Styles */
+        #map {
+            height: 450px;
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+            z-index: 1;
+        }
     </style>
     @stack('styles')
 </head>
@@ -209,6 +221,9 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     @stack('scripts')
 
     {{-- Cek apakah ada session 'success' atau 'error' --}}
@@ -266,5 +281,6 @@
         </div>
     </div>
     @endif
+
 </body>
 </html>

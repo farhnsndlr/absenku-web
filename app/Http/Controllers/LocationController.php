@@ -4,37 +4,72 @@ namespace App\Http\Controllers;
 
 use App\Models\Location;
 use Illuminate\Http\Request;
+// Import Request Validation
+use App\Http\Requests\LocationStoreRequest;
+use App\Http\Requests\LocationUpdateRequest;
 
 class LocationController extends Controller
 {
-    // Tampilkan tabel daftar lokasi
+    // ============================================================
+    // 1. INDEX (Menampilkan Daftar Lokasi)
+    // ============================================================
     public function index()
     {
-        $locations = Location::latest()->get();
+        // Ambil semua data lokasi dengan pagination
+        $locations = Location::latest()->paginate(10);
         return view('admin.locations.index', compact('locations'));
     }
 
-    // Tampilkan form tambah lokasi
+    // ============================================================
+    // 2. CREATE (Menampilkan Form Tambah)
+    // ============================================================
     public function create()
     {
         return view('admin.locations.create');
     }
 
-    // Simpan data lokasi baru
-    public function store(Request $request)
+    // ============================================================
+    // 3. STORE (Memproses Simpan Data Baru)
+    // ============================================================
+    public function store(LocationStoreRequest $request)
     {
-        $request->validate([
-            'location_name' => 'required|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'radius_meters' => 'required|integer|min:10',
-        ]);
-
-        Location::create($request->all());
+        // Data sudah divalidasi dan siap disimpan
+        Location::create($request->validated());
 
         return redirect()->route('admin.locations.index')
             ->with('success', 'Lokasi baru berhasil ditambahkan!');
     }
 
-    // (Opsional) Method edit, update, destroy bisa ditambahkan nanti
+    // ============================================================
+    // 4. EDIT (Menampilkan Form Edit)
+    // ============================================================
+    public function edit(Location $location)
+    {
+        return view('admin.locations.edit', compact('location'));
+    }
+
+    // ============================================================
+    // 5. UPDATE (Memproses Perubahan Data)
+    // ============================================================
+    public function update(LocationUpdateRequest $request, Location $location)
+    {
+        // Data sudah divalidasi
+        $location->update($request->validated());
+
+        return redirect()->route('admin.locations.index')
+            ->with('success', 'Data lokasi berhasil diperbarui.');
+    }
+
+    // ============================================================
+    // 6. DESTROY (Menghapus Data)
+    // ============================================================
+    public function destroy(Location $location)
+    {
+        // Peringatan: Hapus lokasi bisa menyebabkan sesi presensi yang terkait
+        // menjadi bermasalah jika tidak ditangani oleh onDelete('set null') di migrasi.
+        $location->delete();
+
+        return redirect()->route('admin.locations.index')
+            ->with('success', 'Lokasi berhasil dihapus.');
+    }
 }

@@ -1,20 +1,7 @@
 @extends('admin.dashboard')
 
-@section('title', 'Tambah Lokasi Kampus')
-@section('page-title', 'Tambah Lokasi Geofence Baru')
-
-@push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-    #map {
-        height: 450px;
-        width: 100%;
-        border-radius: 0.5rem;
-        border: 1px solid #e5e7eb;
-        margin-bottom: 1rem;
-    }
-</style>
-@endpush
+@section('title', 'Edit Lokasi Kampus')
+@section('page-title', 'Edit Data Lokasi Geofence')
 
 @section('content')
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8">
@@ -23,15 +10,16 @@
             &larr; Kembali ke Daftar Lokasi
         </a>
 
-        <form action="{{ route('admin.locations.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.locations.update', $location->id) }}" method="POST" class="space-y-6">
             @csrf
+            @method('PUT')
 
             <h3 class="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4">Informasi Dasar</h3>
 
             {{-- Nama Lokasi --}}
             <div>
                 <label for="location_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Lokasi (Gedung/Ruang) <span class="text-red-500">*</span></label>
-                <input type="text" name="location_name" id="location_name" value="{{ old('location_name') }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: Kampus Utama - Area Depan Gedung Rektorat">
+                <input type="text" name="location_name" id="location_name" value="{{ old('location_name', $location->location_name) }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: Kampus Utama - Area Depan Gedung Rektorat">
                 @error('location_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -81,7 +69,7 @@
                 {{-- Latitude --}}
                 <div>
                     <label for="latitude" class="block text-sm font-medium text-gray-700 mb-2">Latitude <span class="text-red-500">*</span></label>
-                    <input type="text" name="latitude" id="latitude" value="{{ old('latitude', '-6.2088') }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="-6.256101" readonly>
+                    <input type="text" name="latitude" id="latitude" value="{{ old('latitude', $location->latitude) }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="-6.256101" readonly>
                     @error('latitude') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <p class="text-xs text-gray-500 mt-1">Koordinat ini akan terisi otomatis dari peta.</p>
                 </div>
@@ -89,7 +77,7 @@
                 {{-- Longitude --}}
                 <div>
                     <label for="longitude" class="block text-sm font-medium text-gray-700 mb-2">Longitude <span class="text-red-500">*</span></label>
-                    <input type="text" name="longitude" id="longitude" value="{{ old('longitude', '106.8456') }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="106.82311" readonly>
+                    <input type="text" name="longitude" id="longitude" value="{{ old('longitude', $location->longitude) }}" required class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="106.82311" readonly>
                     @error('longitude') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <p class="text-xs text-gray-500 mt-1">Koordinat ini akan terisi otomatis dari peta.</p>
                 </div>
@@ -97,7 +85,7 @@
                 {{-- Radius (Toleransi) --}}
                 <div>
                     <label for="radius_meters" class="block text-sm font-medium text-gray-700 mb-2">Radius Toleransi (Meter) <span class="text-red-500">*</span></label>
-                    <input type="number" name="radius_meters" id="radius_meters" value="{{ old('radius_meters', '50') }}" required min="10" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 50">
+                    <input type="number" name="radius_meters" id="radius_meters" value="{{ old('radius_meters', $location->radius_meters) }}" required min="10" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 50">
                     @error('radius_meters') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <p class="text-xs text-gray-500 mt-1">Jarak maksimum dari titik pusat.</p>
                 </div>
@@ -105,14 +93,13 @@
 
             <div class="flex justify-end gap-3 border-t border-gray-100 pt-8">
                 <a href="{{ route('admin.locations.index') }}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium">Batal</a>
-                <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium shadow-sm">Simpan Lokasi</button>
+                <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium shadow-sm">Perbarui Lokasi</button>
             </div>
         </form>
     </div>
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof L === 'undefined') {
@@ -120,15 +107,15 @@
             return;
         }
 
-        // Koordinat default (Jakarta atau lokasi kampus)
-        const initialLat = parseFloat("{{ old('latitude', '-6.354403319124305') }}");
-        const initialLon = parseFloat("{{ old('longitude', '106.84160449325263') }}");
-        const initialRadius = parseFloat(document.getElementById('radius_meters').value) || 50;
+        // Ambil koordinat dari data lokasi yang ada
+        const initialLat = parseFloat("{{ old('latitude', $location->latitude) }}");
+        const initialLon = parseFloat("{{ old('longitude', $location->longitude) }}");
+        const initialRadius = parseFloat("{{ old('radius_meters', $location->radius_meters) }}") || 50;
 
         // Inisialisasi Peta
-        var map = L.map('map').setView([initialLat, initialLon], 15);
+        var map = L.map('map').setView([initialLat, initialLon], 17); // Zoom lebih dekat untuk edit
 
-        // Tile layer (peta dasar) dari OpenStreetMap
+        // Tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
@@ -140,12 +127,12 @@
             title: 'Drag untuk memindahkan lokasi'
         }).addTo(map);
 
-        // Circle untuk menampilkan radius
+        // Lingkaran radius
         var circle = L.circle([initialLat, initialLon], {
-            radius: initialRadius,
             color: '#3b82f6',
             fillColor: '#3b82f6',
-            fillOpacity: 0.2
+            fillOpacity: 0.2,
+            radius: initialRadius
         }).addTo(map);
 
         // Update input latitude dan longitude saat marker dipindah
@@ -153,9 +140,7 @@
             var latlng = marker.getLatLng();
             document.getElementById('latitude').value = latlng.lat.toFixed(6);
             document.getElementById('longitude').value = latlng.lng.toFixed(6);
-
-            // Pindahkan lingkaran juga
-            circle.setLatLng(latlng);
+            circle.setLatLng(latlng); // Pindahkan lingkaran juga
         });
 
         // Update lingkaran radius saat input radius_meters berubah
@@ -165,10 +150,6 @@
                 circle.setRadius(newRadius);
             }
         });
-
-        // Set initial values for inputs
-        document.getElementById('latitude').value = initialLat.toFixed(6);
-        document.getElementById('longitude').value = initialLon.toFixed(6);
 
         // Invalidate size setelah render untuk memastikan peta tampil dengan benar
         setTimeout(function() {
