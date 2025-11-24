@@ -12,6 +12,7 @@ use App\Models\Course;
 use App\Models\AttendanceSession;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Models\AttendanceRecord;
 
 class DatabaseSeeder extends Seeder
 {
@@ -107,7 +108,7 @@ class DatabaseSeeder extends Seeder
         // 5. Buat Sesi Aktif HARI INI
         // ---------------------------------------------------
         // Sesi dibuat mulai dari 1 jam yang lalu sampai 2 jam ke depan dari sekarang.
-        AttendanceSession::create([
+        $attendanceSession = AttendanceSession::create([
             'course_id' => $course->id,
             'session_date' => Carbon::today(), // Tanggal hari ini
             'start_time' => Carbon::now()->subHour(), // Mulai 1 jam lalu
@@ -118,16 +119,26 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->command->info('✅ Active Session for TODAY created.');
 
+        // --- LANGKAH 6: Buat Rekam Absensi Dummy (Sesuai Model Lama) ---
 
-        // ---------------------------------------------------
-        // FINAL: Informasi Login
-        // ---------------------------------------------------
-        $this->command->info('---------------------------------------');
-        $this->command->info('🎉 SEEDING COMPLETE! Database is ready.');
-        $this->command->info('---------------------------------------');
-        $this->command->info('Login Credentials (Password: password123):');
-        $this->command->info('- Admin: admin@absenku.com');
-        $this->command->info('- Dosen: dosen@absenku.com');
-        $this->command->info('- Mahasiswa: mahasiswa@absenku.com');
+        // a. Ambil ID StudentProfile dari user mahasiswa
+        // Asumsi: user sudah punya relasi 'studentProfile' yang benar
+        $studentProfile = $studentUser->studentProfile;
+
+        if ($studentProfile) {
+            AttendanceRecord::create([
+                // Gunakan nama kolom sesuai model lama
+                'session_id' => $attendanceSession->id,
+                'student_id' => $studentProfile->id, // <-- PENTING: ID dari StudentProfile
+                'status' => 'present',
+                'submission_time' => Carbon::now()->subMinutes(30),
+                'learning_type' => 'onsite', // Sesuai tipe sesi
+                // 'photo_path' => null, // Bisa dikosongkan dulu
+                // 'location_maps' => null, // Bisa dikosongkan dulu
+            ]);
+            $this->command->info('✅ Dummy Attendance Record created successfully (Complex Model).');
+        } else {
+            $this->command->error('❌ Gagal membuat record absensi. User mahasiswa belum memiliki StudentProfile.');
+        }
     }
 }
