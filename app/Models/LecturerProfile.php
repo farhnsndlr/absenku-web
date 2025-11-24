@@ -10,7 +10,7 @@ class LecturerProfile extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nip',
+        'nid',
         'full_name',
         'phone_number',
     ];

@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+@extends($dashboardView)
 
 @section('title', 'Profil Saya')
 @section('page-title', 'Profil Saya')
