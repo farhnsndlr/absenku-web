@@ -5,7 +5,6 @@
 
 @section('navigation')
 {{-- BERANDA --}}
-{{-- Dihilangkan escape character (<a, <svg) dan dirapikan --}}
 <a href="{{ route('admin.dashboard') }}"
 class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.dashboard') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,202 +15,211 @@ class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ re
 
 {{-- PENGGUNA --}}
 <a href="{{ route('admin.users.index') }}"
-     class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.users.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-    </svg>
-    <span>Pengguna</span>
+class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.users.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+</svg>
+<span>Pengguna</span>
 </a>
 
 {{-- MATA KULIAH --}}
 <a href="{{ route('admin.courses.index') }}"
 class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.courses.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-    </svg>
-    <span>Mata Kuliah</span>
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+</svg>
+<span>Mata Kuliah</span>
 </a>
 
 {{-- LOKASI --}}
 <a href="{{ route('admin.locations.index') }}"
 class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.locations.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-    </svg>
-    <span>Lokasi</span>
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+</svg>
+<span>Lokasi</span>
 </a>
 
 {{-- LAPORAN --}}
 <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.reports.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-    </svg>
-    <span>Laporan</span>
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+</svg>
+<span>Laporan</span>
 </a>
-
-
 @endsection
 
 @section('content')
+
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
 <div class="flex items-start justify-between mb-4">
 <div class="flex-1">
 <p class="text-sm text-gray-600 mb-2">Total Pengguna</p>
-<h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_students'] + $stats['total_lecturers']) }}
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="flex items-start justify-between mb-4">
-            <div class="flex-1">
-                <p class="text-sm text-gray-600 mb-2">Total Lokasi</p>
-                <h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_locations']) }}</h3>
-            </div>
-            <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-            </div>
-        </div>
-        <p class="text-sm text-gray-600">
-            <span class="font-medium text-purple-600">{{ number_format($stats['total_courses']) }}</span> Mata Kuliah Aktif
-        </p>
-    </div>
+<h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_students'] + $stats['total_lecturers']) }}</h3>
+</div>
+<div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+</svg>
+</div>
+</div>
+<p class="text-sm text-gray-600">
+<span class="font-medium text-blue-600">{{ number_format($stats['total_students']) }}</span> Mahasiswa •
+<span class="font-medium text-green-600">{{ number_format($stats['total_lecturers']) }}</span> Dosen
+</p>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <div class="mb-6">
-        <h3 class="text-lg font-bold text-gray-900 mb-1">Statistik Tahun Ini ({{ date('Y') }})</h3>
-        <p class="text-sm text-gray-600">Pertumbuhan pengguna baru dan total aktivitas absensi bulanan</p>
-    </div>
-
-    <div class="h-80 relative">
-        <canvas id="usageChart"></canvas>
-    </div>
-
-    <div class="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span class="text-sm text-gray-700">Registrasi Baru</span>
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+            <p class="text-sm text-gray-600 mb-2">Total Lokasi</p>
+            <h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_locations']) }}</h3>
         </div>
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
-            <span class="text-sm text-gray-700">Total Aktivitas Absensi</span>
+        <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
         </div>
+    </div>
+    <p class="text-sm text-gray-600">
+        <span class="font-medium text-purple-600">{{ number_format($stats['total_courses']) }}</span> Mata Kuliah Aktif
+    </p>
+</div>
+
+
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="mb-6">
+<h3 class="text-lg font-bold text-gray-900 mb-1">Statistik Tahun Ini ({{ date('Y') }})</h3>
+<p class="text-sm text-gray-600">Pertumbuhan pengguna baru dan total aktivitas absensi bulanan</p>
+</div>
+
+<div class="h-80 relative">
+    <canvas id="usageChart"></canvas>
+</div>
+
+<div class="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
+    <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+        <span class="text-sm text-gray-700">Registrasi Baru</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
+        <span class="text-sm text-gray-700">Total Aktivitas Absensi</span>
     </div>
 </div>
 
 
+</div>
 @endsection
 
 @push('scripts')
 {{-- Chart.js Library --}}
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-// MENGAMBIL DATA RILL DARI CONTROLLER MENGGUNAKAN BLADE JSON_ENCODE
-// Data ini dikirim dari AdminDashboardController.php
-const labels = {!! json_encode($monthsLabels) !!};
-const newUsersData = {!! json_encode($newUsersData) !!};
-const attendanceActivityData = {!! json_encode($attendanceActivityData) !!};
+    // MENGAMBIL DATA RILL DARI CONTROLLER MENGGUNAKAN BLADE JSON_ENCODE
+    // Data ini dikirim dari AdminDashboardController.php
+    const labels = {!! json_encode($monthsLabels) !!};
+    const newUsersData = {!! json_encode($newUsersData) !!};
+    const attendanceActivityData = {!! json_encode($attendanceActivityData) !!};
 
-const ctx = document.getElementById(&#39;usageChart&#39;).getContext(&#39;2d&#39;);
-const chart = new Chart(ctx, {
-    type: &#39;line&#39;,
-    data: {
-        labels: labels, // Gunakan label bulan dari controller
-        datasets: [
-            {
-                label: &#39;Registrasi Baru&#39;, // Ubah label dataset 1
-                data: newUsersData,     // Gunakan data riil dataset 1
-                borderColor: &#39;#f97316&#39;, // Warna oranye
-                backgroundColor: &#39;transparent&#39;,
-                tension: 0.4,
-                borderWidth: 2.5,
-                pointRadius: 4,
-                pointBackgroundColor: &#39;#f97316&#39;,
-                pointBorderColor: &#39;#fff&#39;,
-                pointBorderWidth: 2,
-                pointHoverRadius: 6
-            },
-            {
-                label: &#39;Total Aktivitas Absensi&#39;, // Ubah label dataset 2
-                data: attendanceActivityData,   // Gunakan data riil dataset 2
-                borderColor: &#39;#14b8a6&#39;, // Warna teal
-                backgroundColor: &#39;transparent&#39;,
-                tension: 0.4,
-                borderWidth: 2.5,
-                pointRadius: 4,
-                pointBackgroundColor: &#39;#14b8a6&#39;,
-                pointBorderColor: &#39;#fff&#39;,
-                pointBorderWidth: 2,
-                pointHoverRadius: 6
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            intersect: false,
-            mode: &#39;index&#39;
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels, // Gunakan label bulan dari controller
+            datasets: [
+                {
+                    label: 'Registrasi Baru', // Ubah label dataset 1
+                    data: newUsersData,     // Gunakan data riil dataset 1
+                    borderColor: '#f97316', // Warna oranye
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#f97316',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Total Aktivitas Absensi', // Ubah label dataset 2
+                    data: attendanceActivityData,   // Gunakan data riil dataset 2
+                    borderColor: '#14b8a6', // Warna teal
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#14b8a6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }
+            ]
         },
-        plugins: {
-            legend: {
-                display: false // Legend sudah dibuat custom di HTML di atas
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
             },
-            tooltip: {
-                backgroundColor: &#39;rgba(0, 0, 0, 0.8)&#39;,
-                padding: 12,
-                titleFont: {
-                    size: 13,
-                    weight: &#39;bold&#39;
+            plugins: {
+                legend: {
+                    display: false // Legend sudah dibuat custom di HTML di atas
                 },
-                bodyFont: {
-                    size: 12
-                },
-                cornerRadius: 8,
-                // Menambahkan callback agar tooltip lebih rapi (opsional, menambah pemisah ribuan)
-                callbacks: {
-                     label: function(context) {
-                        let label = context.dataset.label || &#39;&#39;;
-                        if (label) {
-                            label += &#39;: &#39;;
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    cornerRadius: 8,
+                    // Menambahkan callback agar tooltip lebih rapi (opsional, menambah pemisah ribuan)
+                    callbacks: {
+                         label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                // Format angka dengan pemisah ribuan ala Indonesia
+                                label += new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                            }
+                            return label;
                         }
-                        if (context.parsed.y !== null) {
-                            // Format angka dengan pemisah ribuan ala Indonesia
-                            label += new Intl.NumberFormat(&#39;id-ID&#39;).format(context.parsed.y);
-                        }
-                        return label;
                     }
                 }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                border: { display: false },
-                grid: { color: &#39;#f3f4f6&#39;, drawTicks: false },
-                ticks: {
-                    padding: 10,
-                    color: &#39;#6b7280&#39;,
-                    font: { size: 12 },
-                    // Pastikan tick sumbu Y hanya menampilkan angka bulat
-                    callback: function(value) {if (value % 1 === 0) {return value;}}
-                }
             },
-            x: {
-                border: { display: false },
-                grid: { display: false },
-                ticks: { padding: 10, color: &#39;#6b7280&#39;, font: { size: 12 } }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: '#f3f4f6', drawTicks: false },
+                    ticks: {
+                        padding: 10,
+                        color: '#6b7280',
+                        font: { size: 12 },
+                        // Pastikan tick sumbu Y hanya menampilkan angka bulat
+                        callback: function(value) {if (value % 1 === 0) {return value;}}
+                    }
+                },
+                x: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { padding: 10, color: '#6b7280', font: { size: 12 } }
+                }
             }
         }
-    }
-});
-
-
+    });
 </script>
-
 @endpush
