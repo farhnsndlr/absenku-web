@@ -45,6 +45,15 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('landing');
     });
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    // Menampilkan form edit profil
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    // Memproses update profil (menggunakan PATCH)
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Menampilkan form ubah password
+    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
+    // Memproses update password
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 
 
     // --- Role Based Routes ---

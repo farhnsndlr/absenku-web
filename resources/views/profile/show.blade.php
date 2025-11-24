@@ -5,18 +5,36 @@
 
 @section('content')
     <div class="max-w-4xl mx-auto">
+
+        @if (session('status') === 'profile-updated')
+            <div class="mb-6 p-4 text-sm text-green-700 bg-green-100 rounded-lg border border-green-200" role="alert">
+                <span class="font-medium">Sukses!</span> Profil Anda berhasil diperbarui.
+            </div>
+        @elseif (session('status') === 'password-updated')
+            <div class="mb-6 p-4 text-sm text-green-700 bg-green-100 rounded-lg border border-green-200" role="alert">
+                <span class="font-medium">Sukses!</span> Password Anda berhasil diubah.
+            </div>
+        @endif
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div class="md:flex">
                 <div class="md:w-1/3 bg-gray-50 p-8 flex flex-col items-center text-center border-b md:border-b-0 md:border-r border-gray-100">
-                    <div class="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                        <span class="text-4xl font-bold text-blue-600">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
-                    </div>
+                    @if($user->profile_photo_url)
+                        {{-- Jika ada foto, tampilkan gambar dengan cache busting --}}
+                        <img class="w-32 h-32 rounded-full object-cover mb-4 shadow-sm border-4 border-white"
+                             src="{{ $user->profile_photo_url }}?v={{ time() }}"
+                             alt="{{ $user->name }}">
+                    @else
+                        {{-- Jika tidak ada foto, tampilkan inisial (kode lama) --}}
+                        <div class="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mb-4 shadow-sm border-4 border-white">
+                            <span class="text-4xl font-bold text-blue-600">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
+                        </div>
+                    @endif
                     <h2 class="text-xl font-bold text-gray-900 mb-1">{{ $user->name }}</h2>
                     <span class="inline-block px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full mb-4">
                         {{ ucfirst($user->role) }}
                     </span>
 
-                    {{-- Tampilkan NID/NPM berdasarkan jenis profil --}}
                     @if($user->profile)
                         @if($user->profile instanceof \App\Models\LecturerProfile)
                             <p class="text-sm text-gray-500">NID: <span class="font-medium text-gray-700">{{ $user->profile->nid }}</span></p>
@@ -29,12 +47,12 @@
                 <div class="md:w-2/3 p-8">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-lg font-bold text-gray-900">Informasi Akun</h3>
-                        <button type="button" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition flex items-center gap-1">
+                        <a href="{{ route('profile.edit') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                             Edit Profil
-                        </button>
+                        </a>
                     </div>
 
                     <div class="space-y-4">
@@ -60,7 +78,8 @@
         </div>
 
         @if($user->role === 'lecturer' && isset($additionalData['courses_taught']))
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {{-- Kartu Mata Kuliah Dosen --}}
+             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Mata Kuliah yang Diampu</h3>
                 @if($additionalData['courses_taught']->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +102,8 @@
                 @endif
             </div>
         @elseif($user->role === 'student' && isset($additionalData['courses_enrolled']))
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {{-- Kartu Mata Kuliah Mahasiswa --}}
+             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Mata Kuliah yang Diambil</h3>
                 @if($additionalData['courses_enrolled']->count() > 0)
                     <div class="overflow-x-auto">
@@ -121,11 +141,11 @@
             <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
                     <h4 class="font-medium text-gray-900">Password</h4>
-                    <p class="text-sm text-gray-500">Terakhir diubah 3 bulan yang lalu</p>
+                    <p class="text-sm text-gray-500">Disarankan untuk memperbarui password secara berkala.</p>
                 </div>
-                <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                <a href="{{ route('profile.password') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
                     Ubah Password
-                </button>
+                </a>
             </div>
         </div>
     </div>

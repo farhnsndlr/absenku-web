@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class User extends Authenticatable
@@ -17,14 +20,56 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        // 'profile_id', // <-- HAPUS INI DARI FILLABLE
-        'profile_id', // Relasi polimorfik akan mengisi ini dan profile_type secara otomatis
+        'profile_id',
         'profile_type',
+        'profile_photo_path', // Pastikan ini tetap ada
     ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function (mixed $value, array $attributes) {
+                // Cek apakah ada path foto disimpan di database
+                if (isset($attributes['profile_photo_path']) && $attributes['profile_photo_path']) {
+                    // Jika ada, generate URL publik lengkap menggunakan Storage facade
+                    // Hasilnya misal: http://domain.com/storage/profile-photos/namafile.jpg
+                    return Storage::url($attributes['profile_photo_path']);
+                }
+
+                // Jika tidak ada foto, kembalikan null.
+                // Nanti di view kita akan cek: if($user->profile_photo_url) { tampilkan img } else { tampilkan inisial }
+                return null;
+            },
+        );
+    }
+
 
     // Hapus relasi hasOne/belongsTo yang lama untuk lecturerProfile dan studentProfile
     // Ganti dengan relasi polimorfik 'profile'
-    public function profile()
+    public function profile(): MorphTo
     {
         return $this->morphTo();
     }

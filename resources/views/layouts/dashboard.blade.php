@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    {{-- Tambahkan Alpine.js CDN (Hapus jika sudah ada di app.js) --}}
-    {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -25,7 +23,7 @@
     <div class="flex h-screen overflow-hidden">
         <aside class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
             <div class="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
-                <a href="/" class="flex items-center gap-2">
+                <a href="/" class="flex items-center gap-2 px-7">
                     <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="w-10 h-10">
                     <span class="text-xl font-bold text-blue-600">AbsenKu</span>
                 </a>
@@ -36,20 +34,7 @@
             </nav>
 
             <div class="border-t border-gray-200 p-4 relative shrink-0" x-data="{ openSidebarMenu: false }">
-                {{-- TRIGGER BUTTON --}}
-                <button @click="openSidebarMenu = !openSidebarMenu" type="button" class="w-full flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                        <span class="text-sm font-semibold text-blue-600">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</span>
-                    </div>
-                    <div class="flex-1 min-w-0 overflow-hidden">
-                        <p class="text-sm font-semibold text-gray-900 truncate">{{ auth()->user()->name }}</p>
-                        <p class="text-xs text-gray-500 truncate">{{ ucfirst(auth()->user()->role ?? 'User') }}</p>
-                    </div>
-                    {{-- Ikon Chevron Berputar --}}
-                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200 shrink-0" :class="{'rotate-180': openSidebarMenu}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
+
 
                 {{-- DROPDOWN MENU CONTENT --}}
                 <div x-show="openSidebarMenu"
@@ -105,9 +90,13 @@
                         {{-- TRIGGER BUTTON --}}
                         <button @click="openHeaderMenu = !openHeaderMenu" type="button" class="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <span class="sr-only">Open user menu</span>
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span class="text-xs font-semibold text-blue-600">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</span>
-                            </div>
+                            @if(auth()->user()->profile_photo_url)
+                                <img class="w-8 h-8 rounded-full object-cover" src="{{ auth()->user()->profile_photo_url }}?v={{ time() }}" alt="{{ auth()->user()->name }}">
+                            @else
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-semibold text-blue-600">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</span>
+                                </div>
+                            @endif
                             {{-- Ikon Chevron Berputar --}}
                             <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" :class="{'rotate-180': openHeaderMenu}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -133,7 +122,6 @@
                             </div>
 
                             <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan</a>
                             <div class="border-t border-gray-100 my-1"></div>
 
                             {{-- Tombol Logout --}}
