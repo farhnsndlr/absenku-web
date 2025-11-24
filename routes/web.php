@@ -12,6 +12,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StudentAttendanceController;
+use App\Http\Controllers\ReportController;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
@@ -77,6 +78,13 @@ Route::middleware('auth')->group(function () {
                 'courses'   => CourseController::class,
                 'locations' => LocationController::class,
             ]);
+
+            // Reports (Admin)
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [ReportController::class, 'index'])->name('index');
+                Route::get('/{session}', [ReportController::class, 'show'])->name('show');
+                Route::get('/export/excel', [ReportController::class, 'export'])->name('export');
+            });
         });
 
 

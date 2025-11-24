@@ -43,4 +43,10 @@ class AttendanceSession extends Model
     {
         return $this->hasMany(AttendanceRecord::class, 'session_id');
     }
+
+    public function attendanceRecords()
+    {
+        return $this->hasMany(AttendanceRecord::class, 'session_id');
+    }
+
 }
