@@ -33,7 +33,7 @@ class Course extends Model
     }
 
     /**
-     * Relasi ke Sesi Presensi (One-to-Many) - INI SUDAH BENAR
+     * Relasi ke Sesi Presensi (One-to-Many).
      */
     public function sessions()
     {
@@ -42,11 +42,16 @@ class Course extends Model
 
     /**
      * Relasi ke Mahasiswa yang mengambil matkul ini (Many-to-Many).
-     * Tabel pivot menghubungkan course_id dan student_id (ID dari tabel USERS).
+     * Tabel pivot menghubungkan course_id dan student_profile_id (ID dari tabel student_profiles).
+     * PERBAIKAN: Mengganti 'student_id' menjadi 'student_profile_id' agar sesuai dengan migrasi database.
      */
     public function students()
     {
-        return $this->belongsToMany(User::class, 'course_enrollments', 'course_id', 'student_id')
-            ->withTimestamps();
+        return $this->belongsToMany(
+            User::class,
+            'course_enrollments',
+            'course_id',
+            'student_profile_id'
+        )->withTimestamps();
     }
 }

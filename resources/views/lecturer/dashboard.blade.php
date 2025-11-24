@@ -42,26 +42,37 @@
                     </svg>
                 </div>
             </div>
+            {{-- Menggunakan variabel totalCourses --}}
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ $totalCourses }}</p>
-            {{-- 🔥 Teks semester dihapus, diganti teks statis --}}
             <p class="text-sm text-gray-500">Total Diampu</p>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            {{-- ... (ikon sama) ... --}}
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500">Total Mahasiswa</h3>
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h-4M7 4h10m-3 12a3 3 0 11-6 0 3 3 0 016 0zM12 12V4m-2 16h4m4-12v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4M12 12V4m-4 8h8"/></svg>
+                </div>
+            </div>
+            {{-- Menggunakan variabel totalStudents --}}
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ $totalStudents }}</p>
             <p class="text-sm text-gray-500">Total Mahasiswa Unik</p>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            {{-- ... (ikon sama) ... --}}
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500">Rata-rata Presensi</h3>
+                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6"/></svg>
+                </div>
+            </div>
+            {{-- Menggunakan variabel averageAttendance --}}
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ number_format($averageAttendance, 1) }}%</p>
-            <p class="text-sm text-gray-500">Rata-rata Minggu Ini</p>
+            <p class="text-sm text-gray-500">Rata-rata Semua Sesi</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {{-- ... (Kode jadwal mengajar tidak ada perubahan karena tidak pakai semester) ... --}}
         <div class="lg:col-span-1">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-full">
                 <div class="p-6 border-b border-gray-200">
@@ -71,17 +82,21 @@
                 <div class="p-6 space-y-6">
                     @forelse($todaysSessions as $session)
                         <div class="flex gap-4 relative">
-                            <div class="absolute left-[4.5rem] top-2 bottom-0 w-0.5 {{ $session->time_status == 'ongoing' ? 'bg-blue-200' : 'bg-gray-200' }} h-full -z-10"></div>
+                            {{-- Menggunakan $session->time_status == 'Active' --}}
+                            <div class="absolute left-[4.5rem] top-2 bottom-0 w-0.5 {{ $session->time_status == 'Active' ? 'bg-blue-200' : 'bg-gray-200' }} h-full -z-10"></div>
                             <div class="flex-shrink-0 w-14 text-center">
                                 <p class="text-sm font-bold text-gray-900">{{ \Carbon\Carbon::parse($session->start_time)->format('H:i') }}</p>
                                 <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($session->end_time)->format('H:i') }}</p>
                             </div>
-                            <div class="w-4 h-4 {{ $session->time_status == 'ongoing' ? 'bg-blue-500' : 'bg-gray-300' }} rounded-full border-4 border-white shadow-sm mt-1.5 z-10 relative"></div>
+                            {{-- Menggunakan $session->time_status == 'Active' --}}
+                            <div class="w-4 h-4 {{ $session->time_status == 'Active' ? 'bg-blue-500' : 'bg-gray-300' }} rounded-full border-4 border-white shadow-sm mt-1.5 z-10 relative"></div>
                             <div class="flex-1 pb-4">
-                                <h4 class="text-base font-bold text-gray-900">{{ $session->course->course_name }}</h4>
-                                <p class="text-sm text-gray-500 mb-3">{{ $session->course->course_code }} | {{ $session->location->location_name ?? 'Lokasi tidak ditentukan' }}</p>
+                                {{-- Mengakses properti course_name secara langsung --}}
+                                <h4 class="text-base font-bold text-gray-900">{{ $session->course_name }}</h4>
+                                {{-- Mengakses course_code secara langsung --}}
+                                <p class="text-sm text-gray-500 mb-3">{{ $session->course_code }} | Lokasi: {{ $session->location_name ?? 'N/A' }}</p>
 
-                                @if($session->time_status != 'finished')
+                                @if($session->time_status != 'Finished')
                                 {{-- GANTI ROUTE INI NANTI KE ROUTE MANAJEMEN SESI YANG BENAR --}}
                                 <a href="#" class="text-xs px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition shadow-sm inline-block">
                                     Kelola Sesi
@@ -108,20 +123,19 @@
                         <thead>
                             <tr class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
                                 <th class="pb-4">Mata Kuliah</th>
-                                {{-- 🔥 Kolom Semester/Kelas Dihapus dari Header --}}
                                 <th class="pb-4">Sesi Terakhir</th>
                                 <th class="pb-4">Kehadiran</th>
                                 <th class="pb-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
+                            {{-- Menggunakan variabel courseAttendanceStatus --}}
                             @forelse($courseAttendanceStatus as $status)
                                 <tr>
                                     <td class="py-4 pr-4">
                                         <div class="font-bold text-gray-900">{{ $status['course']->course_name }}</div>
                                         <div class="text-xs text-gray-500">{{ $status['course']->course_code }}</div>
                                     </td>
-                                    {{-- 🔥 Kolom Semester/Kelas Dihapus dari Body --}}
                                     <td class="py-4 pr-4 text-sm text-gray-500">
                                         @if($status['last_session'])
                                             <div>{{ \Carbon\Carbon::parse($status['last_session']->session_date)->translatedFormat('d M Y') }}</div>
