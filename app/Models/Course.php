@@ -12,26 +12,41 @@ class Course extends Model
     protected $fillable = [
         'course_code',
         'course_name',
-        'course_time',
-        'lecturer_id',
+        'start_time',
+        'end_time',
+        'lecturer_id', // Ini merujuk ke ID di tabel users (role lecturer)
     ];
 
-    // Relasi ke Dosen Pengampu (Belongs-to)
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
+
+    /**
+     * Relasi ke Dosen Pengampu.
+     * Karena lecturer_id di tabel courses merujuk ke tabel users,
+     * maka relasi ini harus ke model User.
+     */
     public function lecturer()
     {
-        return $this->belongsTo(LecturerProfile::class, 'lecturer_id');
+        return $this->belongsTo(User::class, 'lecturer_id');
     }
 
-    // Relasi ke Sesi Presensi (One-to-Many)
+    /**
+     * Relasi ke Sesi Presensi (One-to-Many) - INI SUDAH BENAR
+     */
     public function sessions()
     {
         return $this->hasMany(AttendanceSession::class, 'course_id');
     }
 
-    // Relasi ke Mahasiswa yang mengambil matkul ini (Many-to-Many)
+    /**
+     * Relasi ke Mahasiswa yang mengambil matkul ini (Many-to-Many).
+     * Tabel pivot menghubungkan course_id dan student_id (ID dari tabel USERS).
+     */
     public function students()
     {
-        return $this->belongsToMany(StudentProfile::class, 'course_enrollments', 'course_id', 'student_id')
+        return $this->belongsToMany(User::class, 'course_enrollments', 'course_id', 'student_id')
             ->withTimestamps();
     }
 }

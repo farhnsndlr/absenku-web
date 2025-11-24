@@ -29,9 +29,11 @@ class StudentProfile extends Model
 
     // Relasi ke Mata Kuliah yang diambil (Many-to-Many via course_enrollments)
     // INI PENTING YANG KAMU INGETIN TADI!
+    // app/Models/StudentProfile.php
+
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_enrollments', 'student_id', 'course_id')
-            ->withTimestamps();
+        // Parameter ke-2 WAJIB diisi dengan nama tabel pivot kita: 'course_enrollments'
+        return $this->belongsToMany(Course::class, 'course_enrollments', 'student_profile_id', 'course_id');
     }
 }
