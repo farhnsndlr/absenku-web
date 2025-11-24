@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+// Import semua Controller yang dibutuhkan
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LecturerDashboardController;
@@ -9,12 +10,12 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\StudentAttendanceController;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
 // ====================================================
-// Jika halaman ini hanya menampilkan view statis tanpa data,
-// Route::view() lebih ringkas.
 Route::view('/', 'landing')->name('landing');
 
 
@@ -37,23 +38,27 @@ Route::middleware('guest')->group(function () {
 // ====================================================
 Route::middleware('auth')->group(function () {
 
-    // --- Global Authenticated Routes ---
+    // --- Global Authenticated Routes (Bisa diakses semua role) ---
 
-    // Logout (Sebaiknya dipindah ke Controller agar web.php bersih)
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/logout', function () {
-        return redirect()->route('landing');
-    });
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    // Menampilkan form edit profil
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    // Memproses update profil (menggunakan PATCH)
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Menampilkan form ubah password
-    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password');
-    // Memproses update password
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    // Notifikasi
+    Route::get('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
+    // --- Group Route Profil ---
+    Route::prefix('profile')->name('profile.')->group(function () {
+        // Halaman Profil Saya
+        Route::get('/', [ProfileController::class, 'show'])->name('show');
+        // Form Edit Profil
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+        // Proses Update Profil
+        Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        // Form Ubah Password
+        Route::get('/password', [ProfileController::class, 'editPassword'])->name('password');
+        // Proses Update Password
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    });
 
 
     // --- Role Based Routes ---
@@ -61,7 +66,7 @@ Route::middleware('auth')->group(function () {
     // 1. GROUP: ADMIN (Role: admin)
     Route::prefix('admin')
         ->name('admin.')
-        ->middleware('role:admin')
+        ->middleware('role:admin') // Pastikan middleware 'role' sudah terdaftar di Kernel
         ->group(function () {
             // Dashboard
             Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -82,8 +87,7 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/dashboard', [LecturerDashboardController::class, 'index'])->name('dashboard');
 
-            // Tambahkan route khusus dosen lainnya di sini, misal: manajemen sesi kelas
-            // Route::resource('sessions', LecturerSessionController::class);
+            // Nanti: Route untuk manajemen sesi (create, store, dll) akan ditambahkan di sini.
         });
 
 
@@ -92,12 +96,21 @@ Route::middleware('auth')->group(function () {
         ->name('student.')
         ->middleware('role:student')
         ->group(function () {
-            // GUNAKAN CONTROLLER, JANGAN CLOSURE FUNCTION
-            // Dashboard biasanya butuh data (misal: jadwal hari ini, dll), jadi sebaiknya pakai controller.
+            // Dashboard Mahasiswa
             Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
-            // Halaman Absensi
-            Route::get('/attendance', [StudentDashboardController::class, 'attendanceForm'])->name('attendance');
-            // Route::post('/attendance', [StudentDashboardController::class, 'submitAttendance'])->name('attendance.submit');
+            // --- FITUR ABSENSI (Attendance) ---
+            // Route ini menggunakan StudentAttendanceController yang baru kita buat.
+            // Awalan URL: /mahasiswa/absensi
+            // Awalan Nama Route: student.attendance.
+            Route::prefix('absensi')->name('attendance.')->group(function () {
+                // 1. Halaman daftar sesi aktif (GET /mahasiswa/absensi)
+                // Nama route: student.attendance.index
+                Route::get('/', [StudentAttendanceController::class, 'index'])->name('index');
+
+                // 2. Proses Check-in/Hadir (POST /mahasiswa/absensi/{session}/check-in)
+                // Nama route: student.attendance.store
+                Route::post('/{session}/check-in', [StudentAttendanceController::class, 'store'])->name('store');
+            });
         });
 });

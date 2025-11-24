@@ -27,12 +27,14 @@ class AttendanceRecord extends Model
     // Relasi ke Sesi (Belongs-to)
     public function session()
     {
+        // Parameter kedua harus sesuai nama kolom FK di database
         return $this->belongsTo(AttendanceSession::class, 'session_id');
     }
 
     // Relasi ke Mahasiswa (Belongs-to)
     public function student()
     {
+        // Ini merujuk ke model StudentProfile, bukan User
         return $this->belongsTo(StudentProfile::class, 'student_id');
     }
 }
