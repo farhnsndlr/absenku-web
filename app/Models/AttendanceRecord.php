@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceRecord extends Model
 {
@@ -21,20 +22,20 @@ class AttendanceRecord extends Model
 
     // Casts penting
     protected $casts = [
-        'submission_time' => 'datetime',
+        'submission_time' => 'datetime', // Casting agar bisa menggunakan format() di Exporter
     ];
 
     // Relasi ke Sesi (Belongs-to)
-    public function session()
+    public function session(): BelongsTo // Tambahkan type hint
     {
         // Parameter kedua harus sesuai nama kolom FK di database
         return $this->belongsTo(AttendanceSession::class, 'session_id');
     }
 
     // Relasi ke Mahasiswa (Belongs-to)
-    public function student()
+    public function student(): BelongsTo
     {
-        // Ini merujuk ke model StudentProfile, bukan User
+        // Menggunakan student_id sebagai FK dan merujuk ke StudentProfile
         return $this->belongsTo(StudentProfile::class, 'student_id');
     }
 }
