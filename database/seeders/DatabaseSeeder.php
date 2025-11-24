@@ -72,7 +72,8 @@ class DatabaseSeeder extends Seeder
         $course = Course::create([
             'course_code' => 'IF401',
             'course_name' => 'Pemrograman Web Lanjut',
-            'course_time' => 'Senin, 08:00 - 10:00',
+            'start_time' => Carbon::createFromTime(8, 0, 0),  // Jam 08:00:00
+            'end_time' => Carbon::createFromTime(10, 0, 0),   // Jam 10:00:00
             'lecturer_id' => $lecturerProfile->id,
         ]);
         $this->command->info('✅ Lecturer & Course created.');

@@ -66,7 +66,6 @@ class User extends Authenticatable
         );
     }
 
-
     // Hapus relasi hasOne/belongsTo yang lama untuk lecturerProfile dan studentProfile
     // Ganti dengan relasi polimorfik 'profile'
     public function profile(): MorphTo
@@ -101,4 +100,11 @@ class User extends Authenticatable
         }
         return null;
     }
+
+    public function students()
+    {
+        // Parameter ke-2 WAJIB diisi dengan nama tabel pivot kita: 'course_enrollments'
+        return $this->belongsToMany(StudentProfile::class, 'course_enrollments', 'course_id', 'student_profile_id');
+    }
+
 }

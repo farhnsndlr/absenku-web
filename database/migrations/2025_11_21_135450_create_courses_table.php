@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('course_code')->unique();
             $table->string('course_name');
-            $table->string('course_time');
-            $table->foreignId('lecturer_id')->constrained('lecturer_profiles')->onDelete('cascade');
+            $table->string('start_time');
+            $table->string('end_time');
+            $table->foreignId('lecturer_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }
