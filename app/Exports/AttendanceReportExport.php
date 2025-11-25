@@ -38,8 +38,12 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
             $query->where('course_id', $this->filters['course_id']);
         }
 
-        if (!empty($this->filters['session_type'])) {
-            $query->where('session_type', $this->filters['session_type']);
+        if (!empty($this->filters['learning_type'])) {
+            $query->where('learning_type', $this->filters['learning_type']);
+        }
+
+        if (!empty($this->filters['lecturer_id'])) {
+            $query->where('lecturer_id', $this->filters['lecturer_id']);
         }
 
         $sessions = $query->latest('session_date')->get();

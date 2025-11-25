@@ -10,6 +10,7 @@ use App\Models\StudentProfile;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceReportExport;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -17,6 +18,9 @@ class ReportController extends Controller
     {
         $query = AttendanceSession::with(['course', 'location']);
 
+        if (Auth::user()->role === 'lecturer') {
+            $query->where('lecturer_id', Auth::user()->id);
+        }
         // Filter berdasarkan tanggal
         if ($request->filled('start_date')) {
             $query->where('session_date', '>=', $request->start_date);
@@ -32,8 +36,8 @@ class ReportController extends Controller
         }
 
         // Filter berdasarkan tipe pembelajaran
-        if ($request->filled('session_type')) {
-            $query->where('session_type', $request->session_type);
+        if ($request->filled('learning_type')) {
+            $query->where('learning_type', $request->learning_type);
         }
 
         $sessions = $query->latest('session_date')->paginate(15);
@@ -44,6 +48,9 @@ class ReportController extends Controller
         // Ambil data untuk filter dropdown
         $courses = Course::orderBy('course_name')->get();
 
+        if (Auth::user()->role === 'lecturer') {
+            return view('lecturer.reports.index', compact('sessions', 'statistics', 'courses'));
+        }
         return view('admin.reports.index', compact('sessions', 'statistics', 'courses'));
     }
 
@@ -54,6 +61,10 @@ class ReportController extends Controller
         $records = AttendanceRecord::with(['student', 'student.user'])
             ->where('session_id', $sessionId)
             ->get();
+
+        if (Auth::user()->role === 'lecturer' && $session->lecturer_id !== Auth::user()->id) {
+            abort(403, 'Tidak punya akses ke sesi ini.');
+        }
 
         // Statistik untuk session ini
         $sessionStats = [
@@ -66,15 +77,26 @@ class ReportController extends Controller
                 : 0
         ];
 
+        if (Auth::user()->role === 'lecturer') {
+            return view('lecturer.reports.show', compact('session', 'records', 'sessionStats'));
+        }
         return view('admin.reports.show', compact('session', 'records', 'sessionStats'));
     }
 
     public function export(Request $request)
     {
+        $filters = $request->all();
+
+        // Jika lecturer, batasi hanya kelas dia
+        if (Auth::user()->role === 'lecturer') {
+            $filters['lecturer_id'] = Auth::user()->id;
+        }
+
         $filename = 'laporan-kehadiran-' . now()->format('Y-m-d-His') . '.xlsx';
 
-        return Excel::download(new AttendanceReportExport($request->all()), $filename);
+        return Excel::download(new AttendanceReportExport($filters), $filename);
     }
+
 
     private function calculateStatistics($request)
     {
@@ -104,8 +126,8 @@ class ReportController extends Controller
             'present' => $recordsQuery->where('status', 'present')->count(),
             'absent' => $recordsQuery->where('status', 'absent')->count(),
             'sick' => $recordsQuery->where('status', 'sick')->count(),
-            'online_sessions' => $query->where('session_type', 'online')->count(),
-            'offline_sessions' => $query->where('session_type', 'offline')->count(),
+            'online_sessions' => $query->where('learning_type', 'online')->count(),
+            'offline_sessions' => $query->where('learning_type', 'offline')->count(),
         ];
     }
 }

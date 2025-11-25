@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('attendance_sessions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('lecturer_id')
+                ->constrained('users')
+                ->onDelete('cascade');
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
             $table->date('session_date');
             $table->time('start_time');
@@ -32,7 +35,7 @@ return new class extends Migration
     {
         Schema::table('attendance_sessions', function (Blueprint $table) {
             $table->dropForeign(['location_id']);
-            $table->dropColumn(['session_date','start_time','end_time','session_type','location_id','name']);
+            $table->dropColumn(['session_date', 'start_time', 'end_time', 'session_type', 'location_id', 'name']);
         });
     }
 };
