@@ -114,9 +114,8 @@ class DatabaseSeeder extends Seeder
             'session_date' => Carbon::today(), // Tanggal hari ini
             'start_time' => Carbon::now()->subHour(), // Mulai 1 jam lalu
             'end_time' => Carbon::now()->addHours(2), // Selesai 2 jam lagi
-            'session_type' => 'offline',
+            'learning_type' => 'offline',
             'location_id' => $location->id, // Menggunakan lokasi nyata tadi
-            'description' => 'Sesi Pertemuan ke-1 (Testing Monolith)',
         ]);
         $this->command->info('✅ Active Session for TODAY created.');
 

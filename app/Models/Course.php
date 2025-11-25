@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Location;
 
 class Course extends Model
 {
@@ -14,12 +15,17 @@ class Course extends Model
         'course_name',
         'start_time',
         'end_time',
-        'lecturer_id', // Ini merujuk ke ID di tabel users (role lecturer)
+        'session_type',
+        'location_id',
+        'description',
+        'academic_year',
+        'lecturer_id',
+        // 'sks' dihapus
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
     ];
 
     /**
@@ -37,21 +43,31 @@ class Course extends Model
      */
     public function sessions()
     {
-        return $this->hasMany(AttendanceSession::class, 'course_id');
+        return $this->hasMany(AttendanceSession::class);
     }
 
-    /**
-     * Relasi ke Mahasiswa yang mengambil matkul ini (Many-to-Many).
-     * Tabel pivot menghubungkan course_id dan student_profile_id (ID dari tabel student_profiles).
-     * PERBAIKAN: Mengganti 'student_id' menjadi 'student_profile_id' agar sesuai dengan migrasi database.
-     */
     public function students()
     {
         return $this->belongsToMany(
-            User::class,
+            StudentProfile::class,
             'course_enrollments',
             'course_id',
             'student_profile_id'
         )->withTimestamps();
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(CourseEnrollment::class, 'course_id');
+    }
+
+    public function attendanceSessions()
+    {
+        return $this->hasMany(AttendanceSession::class);
+    }
+
+    public function location()
+{
+    return $this->belongsTo(Location::class, 'location_id');
+}
 }
