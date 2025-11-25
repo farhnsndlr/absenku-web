@@ -96,6 +96,7 @@ class DatabaseSeeder extends Seeder
         $attendanceSession = AttendanceSession::create([
             'course_id' => $course->id,
             'lecturer_id' => $lecturerUser->id, // <= WAJIB FIX
+            'class_name' => '3KA15', // <= WAJIB FIX
             'session_date' => Carbon::today(),
             'start_time' => Carbon::now()->subHour(),
             'end_time' => Carbon::now()->addHours(2),

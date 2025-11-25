@@ -33,9 +33,9 @@ class AttendanceRecord extends Model
     }
 
     // Relasi ke Mahasiswa (Belongs-to)
-    public function student(): BelongsTo
+    public function user(): BelongsTo
     {
         // Menggunakan student_id sebagai FK dan merujuk ke StudentProfile
-        return $this->belongsTo(StudentProfile::class, 'student_id');
+        return $this->belongsTo(User::class, 'student_id');
     }
 }

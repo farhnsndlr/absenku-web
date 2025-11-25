@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class LecturerSessionController extends Controller
 {
@@ -109,6 +110,8 @@ class LecturerSessionController extends Controller
         // Generate token unik 6 karakter (huruf besar)
         $validated['session_token'] = Str::upper(Str::random(6));
 
+        $validated['lecturer_id'] = Auth::id();
+
         // Status awal 'scheduled'
         $validated['status'] = 'scheduled';
 
@@ -174,20 +177,60 @@ class LecturerSessionController extends Controller
 
     public function update(Request $request, $id)
     {
-        $session = AttendanceSession::findOrFail($id);
+        // 1. Ambil data sesi beserta coursenya untuk cek otorisasi
+        $session = AttendanceSession::with('course')->findOrFail($id);
 
-        $request->validate([
-            'session_date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'learning_type' => 'required',
-            'location_id' => 'required',
-            'status' => 'required',
+        // 2. Cek Otorisasi: Pastikan ini sesi milik dosen yang login
+        if ($session->course->lecturer_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 3. Lakukan Validasi dengan nama field YANG BENAR
+        $validated = $request->validate([
+            'session_date' => ['required', 'date'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'class_name' => ['required', 'string', 'max:50'],
+            'learning_type' => ['required', 'in:online,offline'],
+            // -------------------------------
+
+            // Validasi lokasi: wajib hanya jika tipenya offline
+            'location_id' => [
+                'required_if:session_type,offline',
+                'nullable',
+                Rule::exists('locations', 'id'),
+            ],
+            'topic' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'in:scheduled,open,closed'],
         ]);
 
-        $session->update($request->except('course_id')); // course_id tidak boleh diedit
+        // 4. Logika bisnis: Jika diubah jadi online, paksa lokasi jadi null
+        if ($validated['learning_type'] === 'online') {
+            $validated['location_id'] = null;
+        }
 
+        // 5. Update data dengan data yang sudah divalidasi
+        $session->update($validated);
+
+        // 6. Redirect kembali dengan pesan sukses
         return redirect()->route('lecturer.sessions.show', $session->id)
             ->with('success', 'Sesi presensi berhasil diperbarui.');
+    }
+
+    public function destroy(AttendanceSession $session)
+    {
+        // Pastikan dosen hanya bisa menghapus sesi miliknya sendiri
+        if ($session->course->lecturer_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Cek apakah sesi sudah ada yang absen. Jika ada, mungkin tidak boleh dihapus.
+        if ($session->attendanceRecords()->exists()) {
+            return back()->with('error', 'Sesi ini tidak bisa dihapus karena sudah ada mahasiswa yang melakukan absensi.');
+        }
+
+        $session->delete();
+        return redirect()->route('lecturer.sessions.index')
+            ->with('success', 'Sesi kelas berhasil dihapus.');
     }
 }
