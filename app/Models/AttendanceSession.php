@@ -12,6 +12,7 @@ class AttendanceSession extends Model
 
     protected $fillable = [
         'course_id',
+        'lecturer_id',
         'session_date',
         'start_time',
         'end_time',
@@ -46,6 +47,11 @@ class AttendanceSession extends Model
         return $this->hasMany(AttendanceRecord::class, 'session_id');
     }
 
+    public function lecturer()
+    {
+        return $this->belongsTo(User::class, 'lecturer_id');
+    }
+    
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class, 'session_id');

@@ -20,7 +20,6 @@ class Course extends Model
         'description',
         'academic_year',
         'lecturer_id',
-        // 'sks' dihapus
     ];
 
     protected $casts = [

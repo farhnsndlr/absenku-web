@@ -72,13 +72,12 @@ class LecturerDashboardController extends Controller
         foreach ($todaysSessions as $session) {
             $now = Carbon::now();
             try {
-                 $startTimeOnly = Carbon::parse($session->start_time)->format('H:i:s');
-                 $endTimeOnly = Carbon::parse($session->end_time)->format('H:i:s');
+                $startTimeOnly = Carbon::parse($session->start_time)->format('H:i:s');
+                $endTimeOnly = Carbon::parse($session->end_time)->format('H:i:s');
 
-                 // Gabungkan dengan tanggal sesi untuk mendapatkan datetime yang akurat
-                 $startTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $startTimeOnly);
-                 $endTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $endTimeOnly);
-
+                // Gabungkan dengan tanggal sesi untuk mendapatkan datetime yang akurat
+                $startTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $startTimeOnly);
+                $endTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $endTimeOnly);
             } catch (\Exception $e) {
                 $session->time_status = 'error_parsing_time';
                 continue;
