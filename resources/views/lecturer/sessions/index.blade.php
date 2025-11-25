@@ -1,72 +1,108 @@
-<x-layouts.dashboard>
-    <div x-data="{ showModal: false }">
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Session Management</h2>
-            <p class="text-gray-500 text-sm mt-1">Kelola semua jadwal sesi perkuliahan yang akan diadakan.</p>
+@extends('lecturer.dashboard')
+
+@section('title', 'Riwayat Sesi Kelas')
+@section('page-title', 'Daftar Sesi Absensi Anda')
+
+@section('content')
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {{-- Header: Tombol Tambah --}}
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">Jadwal Sesi Anda</h2>
+            <a href="{{ route('lecturer.sessions.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Jadwalkan Sesi Baru
+            </a>
         </div>
 
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-gray-700">Daftar Sesi Aktif</h3>
-            <button @click="showModal = true" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Buat Sesi Baru
-            </button>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead>
+        {{-- Tabel Data --}}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 text-gray-500 font-medium uppercase tracking-wider">
                     <tr>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Course / Code
-                        </th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date / Time
-                        </th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Location
-                        </th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                        </th>
-                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                        </th>
+                        <th class="px-6 py-3">Tanggal & Waktu</th>
+                        <th class="px-6 py-3">Mata Kuliah & Topik</th>
+                        <th class="px-6 py-3">Tipe & Lokasi</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            SI201 - Software Engineering
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            25 Nov 2025 (10:00 - 11:30)
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Kampus E231 (Radius 50m)
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
-                            <button class="text-red-600 hover:text-red-900" title="Cancel Session">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </td>
-                    </tr>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($sessions as $session)
+                        <tr class="hover:bg-gray-50 transition">
+                            {{-- Tanggal & Waktu --}}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">
+                                    {{ $session->session_date->translatedFormat('d M Y') }}
+                                </div>
+                                <div class="text-gray-500 text-xs">
+                                    {{ $session->start_time->format('H:i') }} - {{ $session->end_time->format('H:i') }} WIB
+                                </div>
+                            </td>
+                            {{-- Mata Kuliah & Topik --}}
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900">
+                                    {{ $session->course->course_name }}
+                                    <span class="text-gray-500 font-normal">({{ $session->course->course_code }})</span>
+                                </div>
+                                @if($session->topic)
+                                    <div class="text-gray-500 text-xs mt-1 truncate max-w-xs">
+                                        Topik: {{ $session->topic }}
+                                    </div>
+                                @endif
+                            </td>
+                            {{-- Tipe & Lokasi --}}
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col gap-1">
+                                    {{-- Badge Tipe --}}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit {{ $session->session_type == 'offline' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ ucfirst($session->session_type) }}
+                                    </span>
+                                    {{-- Nama Lokasi (Jika Offline) --}}
+                                    @if($session->session_type == 'offline' && $session->location)
+                                        <div class="flex items-center text-sm text-gray-600 mt-1" title="{{ $session->location->location_name }}">
+                                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span class="truncate max-w-[150px]">
+                                                {{ $session->location->location_name }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
+                            {{-- Status --}}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($session->status === 'open')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span class="w-2 h-2 mr-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                                        Dibuka
+                                    </span>
+                                @elseif($session->status === 'closed')
+                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Selesai
+                                    </span>
+                                @else
+                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Terjadwal
+                                    </span>
+                                @endif
+                            </td>
+                            {{-- Aksi --}}
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{{ route('lecturer.sessions.show', $session->id) }}" class="text-blue-600 hover:text-blue-900">Detail & Rekap</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                Anda belum membuat sesi kelas apapun.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-
-        <div x-show="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
-            <div @click.away="showModal = false" class="relative top-20 mx-auto p-5 border w-1/2 shadow-lg rounded-md bg-white">
-                
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Buat Sesi Perkuliahan Baru</h3>
-                
-                @include('lecturer.sessions.create') 
-            </div>
+        {{-- Pagination --}}
+        <div class="px-6 py-4 border-t border-gray-100">
+            {{ $sessions->links() }}
         </div>
     </div>
-</x-layouts.dashboard>  
+@endsection

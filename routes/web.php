@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\LecturerSessionController;
 
 // ====================================================
 // RUTE PUBLIC - Landing Page
@@ -94,8 +95,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:lecturer')
         ->group(function () {
             Route::get('/dashboard', [LecturerDashboardController::class, 'index'])->name('dashboard');
-
-            // Nanti: Route untuk manajemen sesi (create, store, dll) akan ditambahkan di sini.
+            // Menu Kelas untuk Dosen
+            Route::resource('sessions', LecturerSessionController::class)->only(['index', 'create', 'store', 'show']);
         });
 
 
@@ -121,4 +122,8 @@ Route::middleware('auth')->group(function () {
                 Route::post('/{session}/check-in', [StudentAttendanceController::class, 'store'])->name('store');
             });
         });
+
+    Route::middleware(['auth', 'role:lecturer'])->prefix('dosen')->name('lecturer.')->group(function () {
+        Route::resource('courses.sessions', \App\Http\Controllers\LecturerSessionController::class)->shallow();
+    });
 });

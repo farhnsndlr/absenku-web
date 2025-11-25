@@ -17,9 +17,10 @@ return new class extends Migration
             $table->date('session_date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('session_type', ['online', 'offline']);
+            $table->enum('learning_type', ['online', 'offline']);
             $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null');
-            $table->text('description')->nullable();
+            $table->enum('status', ['scheduled', 'open', 'closed'])->default('scheduled');
+            $table->string('session_token', 10)->nullable()->unique();
             $table->timestamps();
         });
     }
@@ -29,6 +30,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendance_sessions');
+        Schema::table('attendance_sessions', function (Blueprint $table) {
+            $table->dropForeign(['location_id']);
+            $table->dropColumn(['session_date','start_time','end_time','session_type','location_id','name']);
+        });
     }
 };

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class AttendanceSession extends Model
 {
@@ -14,9 +15,10 @@ class AttendanceSession extends Model
         'session_date',
         'start_time',
         'end_time',
-        'session_type', // 'online' atau 'onsite'
-        'location_id',  // Nullable
-        'description',
+        'learning_type',
+        'location_id',
+        'status',
+        'session_token',
     ];
 
     // Casts penting agar kolom tanggal/waktu dibaca sebagai objek Carbon (DateTime) oleh Laravel
@@ -49,4 +51,17 @@ class AttendanceSession extends Model
         return $this->hasMany(AttendanceRecord::class, 'session_id');
     }
 
+    public function getIsOpenForAttendanceAttribute()
+    {
+        if ($this->status !== 'open') {
+            return false;
+        }
+
+        $now = Carbon::now();
+
+        $sessionStart = $this->session_date->copy()->setTimeFrom($this->start_time);
+        $sessionEnd = $this->session_date->copy()->setTimeFrom($this->end_time);
+
+        return $now->between($sessionStart, $sessionEnd);
+    }
 }

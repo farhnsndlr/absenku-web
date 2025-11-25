@@ -19,36 +19,34 @@ class StudentAttendanceController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Pastikan user adalah mahasiswa dan punya profil
         if ($user->role !== 'student' || !($user->profile instanceof StudentProfile)) {
             abort(403, 'Akses ditolak. Halaman ini hanya untuk mahasiswa.');
         }
 
-        // 2. Ambil ID semua mata kuliah yang diambil mahasiswa ini
-        // Kita gunakan relasi 'courses' yang ada di model StudentProfile
         $enrolledCourseIds = $user->profile->courses()->pluck('courses.id');
+        $now = Carbon::now();
 
-        $now = Carbon::now(); // Waktu sekarang
+        // AUTO UPDATE: Tutup sesi yg sudah lewat end_time
+        AttendanceSession::where('end_time', '<', $now)
+            ->where('status', 'open') // pastikan tidak mengupdate berulang
+            ->update(['status' => 'closed']);
 
-        // 3. Cari Sesi Absensi yang memenuhi kriteria:
-        $activeSessions = AttendanceSession::whereIn('course_id', $enrolledCourseIds) // a. Mata kuliahnya diambil mahasiswa
-            ->where('session_date', Carbon::today()) // b. Sesi untuk HARI INI
-            ->where('start_time', '<=', $now) // c. Waktu mulai sudah lewat atau sekarang
-            ->where('end_time', '>=', $now)   // d. Waktu selesai belum lewat
-            // e. PENTING: Filter sesi yang BELUM dihadiri oleh mahasiswa ini.
-            //    Kita gunakan whereDoesntHave untuk mengecek apakah TIDAK ADA
-            //    record di tabel attendance_records untuk sesi ini DAN mahasiswa ini.
+        // Ambil sesi yang masih aktif
+        $activeSessions = AttendanceSession::whereIn('course_id', $enrolledCourseIds)
+            ->where('session_date', Carbon::today())
+            ->where('start_time', '<=', $now)
+            ->where('end_time', '>=', $now)
+            ->where('status', 'open')
             ->whereDoesntHave('records', function ($query) use ($user) {
-                $query->where('student_id', $user->id);
+                $query->where('student_id', $user->studentProfile->id);
             })
-            ->with(['course', 'location']) // Eager load data terkait untuk tampilan
+            ->with(['course', 'location'])
             ->orderBy('start_time', 'asc')
             ->get();
 
-        // 4. Tampilkan view dengan data sesi aktif
-        // Kita akan buat view ini nanti: resources/views/student/attendance/index.blade.php
         return view('student.attendance.index', compact('user', 'activeSessions'));
     }
+
 
     /**
      * Memproses check-in (kehadiran) mahasiswa.
@@ -59,42 +57,49 @@ class StudentAttendanceController extends Controller
         $user = Auth::user();
         $now = Carbon::now();
 
-        // 1. Pastikan user punya profil mahasiswa (karena kita butuh ID-nya)
         if (!$user->studentProfile) {
             return back()->with('error', 'Profil mahasiswa tidak ditemukan. Hubungi admin.');
         }
         $studentProfileId = $user->studentProfile->id;
 
-        // 2. Cari Sesi
         $session = AttendanceSession::findOrFail($sessionId);
 
-        // --- VALIDASI (Waktu, Enrollment) ---
-        // (Kode validasi waktu dan enrollment di sini sama seperti sebelumnya)
-        // ...
+        // CEK wajib terdaftar pada mata kuliah
+        if (!$user->profile->courses()->where('courses.id', $session->course_id)->exists()) {
+            return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini.');
+        }
 
-        // 3. Cek Double Submit (Gunakan nama kolom baru)
+        // CEK apakah waktu sudah melewati end_time → otomatis close
+        if ($now->greaterThan(Carbon::parse($session->end_time))) {
+            if ($session->status !== 'closed') {
+                $session->update(['status' => 'closed']);
+            }
+            return back()->with('error', 'Sesi absensi telah ditutup. Kamu tidak dapat melakukan presensi lagi.');
+        }
+
+        // Jika status sudah closed dari sebelumya
+        if ($session->status === 'closed') {
+            return back()->with('error', 'Sesi absensi telah ditutup.');
+        }
+
+        // Cegah double check-in
         $alreadyCheckedIn = AttendanceRecord::where('session_id', $session->id)
-            ->where('student_id', $studentProfileId) // <-- ID StudentProfile
+            ->where('student_id', $studentProfileId)
             ->exists();
 
         if ($alreadyCheckedIn) {
             return back()->with('warning', 'Anda sudah tercatat hadir untuk sesi ini.');
         }
 
-        // --- PROSES SIMPAN (Sesuai Model Lama) ---
-
-        // 4. Buat Record Kehadiran Baru
+        // SIMPAN ABSENSI
         AttendanceRecord::create([
             'session_id' => $session->id,
-            'student_id' => $studentProfileId, // <-- ID StudentProfile
-            'status' => 'present', // Status otomatis 'hadir'
+            'student_id' => $studentProfileId,
+            'status' => 'present',
             'submission_time' => $now,
-            'learning_type' => $session->session_type, // Warisi tipe dari sesi (online/onsite)
-            // 'photo_path' => ..., // Nanti diisi dari upload file
-            // 'location_maps' => ..., // Nanti diisi dari data geolokasi
+            'learning_type' => $session->session_type,
         ]);
 
-        // 5. Kembali ke halaman index dengan pesan sukses
         return redirect()->route('student.attendance.index')->with('success', 'Berhasil melakukan absensi! Kehadiran Anda telah tercatat.');
     }
 }
