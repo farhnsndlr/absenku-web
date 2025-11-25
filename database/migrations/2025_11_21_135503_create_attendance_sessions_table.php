@@ -17,6 +17,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('cascade');
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->string('class_name', 50);
             $table->date('session_date');
             $table->time('start_time');
             $table->time('end_time');

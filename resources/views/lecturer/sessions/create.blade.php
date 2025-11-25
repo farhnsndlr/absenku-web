@@ -45,6 +45,18 @@
                 <p class="text-xs text-gray-500 mt-1" x-show="!selectedCourseId">Pilih mata kuliah untuk mengisi jadwal default otomatis.</p>
             </div>
 
+            {{--  Nama Kelas --}}
+            <div>
+                <label for="class_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas <span class="text-red-500">*</span></label>
+                {{-- Perhatikan name="class_name" dan id="class_name" --}}
+                <input type="text" name="class_name" id="class_name"
+                       value="{{ old('class_name') }}" required
+                       class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4"
+                       placeholder="Contoh: 3KA15">
+                <p class="text-xs text-gray-500 mt-1">Masukkan nama kelas untuk sesi ini agar mudah dibedakan.</p>
+                @error('class_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
             {{-- Tanggal Sesi --}}
             <div>
                 <label for="session_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Kelas <span class="text-red-500">*</span></label>

@@ -21,6 +21,8 @@
                     <tr>
                         <th class="px-6 py-3">Tanggal & Waktu</th>
                         <th class="px-6 py-3">Mata Kuliah & Topik</th>
+                        {{-- KOLOM BARU: Nama Kelas --}}
+                        <th class="px-6 py-3">Nama Kelas</th>
                         <th class="px-6 py-3">Tipe & Lokasi</th>
                         <th class="px-6 py-3">Status</th>
                         <th class="px-6 py-3 text-right">Aksi</th>
@@ -50,24 +52,48 @@
                                     </div>
                                 @endif
                             </td>
-                            {{-- Tipe & Lokasi --}}
+
+                            {{-- Nama Kelas --}}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    {{ $session->class_name }}
+                                </span>
+                            </td>
+
+                            {{-- Tipe & Lokasi (Sudah diperbaiki menggunakan learning_type) --}}
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-1">
-                                    {{-- Badge Tipe --}}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit {{ $session->session_type == 'offline' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
-                                        {{ ucfirst($session->session_type) }}
-                                    </span>
-                                    {{-- Nama Lokasi (Jika Offline) --}}
-                                    @if($session->session_type == 'offline' && $session->location)
-                                        <div class="flex items-center text-sm text-gray-600 mt-1" title="{{ $session->location->location_name }}">
-                                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                            <span class="truncate max-w-[150px]">
-                                                {{ $session->location->location_name }}
-                                            </span>
-                                        </div>
+                                    @if($session->learning_type)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit {{ $session->learning_type == 'offline' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                            {{ ucfirst($session->learning_type) }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-red-500 italic">Tipe Belum Diatur</span>
+                                    @endif
+
+                                    @if($session->learning_type === 'offline')
+                                        @if($session->location)
+                                            <div class="flex items-center text-sm text-gray-600 mt-1" title="{{ $session->location->location_name }}">
+                                                <svg class="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                                <span class="truncate max-w-[150px]">
+                                                    {{ $session->location->location_name }}
+                                                </span>
+                                            </div>
+                                        @else
+                                            <div class="flex items-center text-xs text-red-500 italic mt-1">
+                                                <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                </svg>
+                                                <span>Lokasi Tidak Ditemukan</span>
+                                            </div>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
+
                             {{-- Status --}}
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($session->status === 'open')
@@ -92,7 +118,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500"> {{-- Colspan jadi 6 --}}
                                 Anda belum membuat sesi kelas apapun.
                             </td>
                         </tr>

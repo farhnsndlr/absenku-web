@@ -12,6 +12,7 @@ class AttendanceSession extends Model
 
     protected $fillable = [
         'course_id',
+        'class_name',
         'lecturer_id',
         'session_date',
         'start_time',
@@ -19,7 +20,6 @@ class AttendanceSession extends Model
         'learning_type',
         'location_id',
         'status',
-        'session_token',
     ];
 
     // Casts penting agar kolom tanggal/waktu dibaca sebagai objek Carbon (DateTime) oleh Laravel
@@ -51,7 +51,7 @@ class AttendanceSession extends Model
     {
         return $this->belongsTo(User::class, 'lecturer_id');
     }
-    
+
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class, 'session_id');
