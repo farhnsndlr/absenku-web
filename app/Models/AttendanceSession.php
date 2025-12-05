@@ -12,44 +12,41 @@ class AttendanceSession extends Model
 
     protected $fillable = [
         'course_id',
-        'class_name',
         'lecturer_id',
+        'class_name',
         'session_date',
         'start_time',
         'end_time',
         'learning_type',
         'location_id',
         'status',
+        'description',
+        'session_token',
+        'session_token_expires_at',
     ];
 
-    // Casts penting agar kolom tanggal/waktu dibaca sebagai objek Carbon (DateTime) oleh Laravel
     protected $casts = [
         'session_date' => 'date',
+        'session_token_expires_at' => 'datetime',
         'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'end_time'   => 'datetime',
+
     ];
 
-    // Relasi ke Mata Kuliah (Belongs-to)
+    // Relationships ===========================
     public function course()
     {
         return $this->belongsTo(Course::class, 'course_id');
     }
 
-    // Relasi ke Lokasi (Belongs-to, Nullable)
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id');
     }
 
-    // Relasi ke Rekam Presensi Mahasiswa (One-to-Many)
     public function records()
     {
         return $this->hasMany(AttendanceRecord::class, 'session_id');
-    }
-
-    public function lecturer()
-    {
-        return $this->belongsTo(User::class, 'lecturer_id');
     }
 
     public function attendanceRecords()
@@ -57,17 +54,64 @@ class AttendanceSession extends Model
         return $this->hasMany(AttendanceRecord::class, 'session_id');
     }
 
-    public function getIsOpenForAttendanceAttribute()
+    public function getStartDateTimeAttribute()
     {
-        if ($this->status !== 'open') {
-            return false;
+        $rawDate = $this->getAttributes()['session_date'];
+        $rawTime = $this->getAttributes()['start_time'];
+
+        // Extract date part (Y-m-d)
+        $dateOnly = substr($rawDate, 0, 10);
+
+        // Extract time part - handle jika sudah datetime lengkap
+        if (strlen($rawTime) > 8) {
+            $timeOnly = substr($rawTime, 11, 8);
+        } else {
+            $timeOnly = $rawTime;
         }
 
+        return Carbon::parse($dateOnly . ' ' . $timeOnly);
+    }
+
+    public function getEndDateTimeAttribute()
+    {
+        $rawDate = $this->getAttributes()['session_date'];
+        $rawTime = $this->getAttributes()['end_time'];
+
+        // Extract date part (Y-m-d)
+        $dateOnly = substr($rawDate, 0, 10);
+
+        // Extract time part - handle jika sudah datetime lengkap
+        if (strlen($rawTime) > 8) {
+            $timeOnly = substr($rawTime, 11, 8);
+        } else {
+            $timeOnly = $rawTime;
+        }
+
+        return Carbon::parse($dateOnly . ' ' . $timeOnly);
+    }
+
+    public function getFormattedStartTimeAttribute()
+    {
+        return $this->start_date_time->format('H:i');
+    }
+
+    public function getFormattedEndTimeAttribute()
+    {
+        return $this->end_date_time->format('H:i');
+    }
+
+    // Attribute: apakah sesi masih bisa diabsen?
+    public function getIsOpenForAttendanceAttribute()
+    {
+        if ($this->status !== 'open') return false;
+
         $now = Carbon::now();
+        return $now->between($this->start_time, $this->end_time);
+    }
 
-        $sessionStart = $this->session_date->copy()->setTimeFrom($this->start_time);
-        $sessionEnd = $this->session_date->copy()->setTimeFrom($this->end_time);
-
-        return $now->between($sessionStart, $sessionEnd);
+    public function getIsTokenActiveAttribute()
+    {
+        if (!$this->session_token_expires_at) return false;
+        return now()->lessThanOrEqualTo($this->session_token_expires_at);
     }
 }

@@ -282,5 +282,12 @@
     </div>
     @endif
 
+    @push('styles')
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+@endpush
 </body>
 </html>
+
+

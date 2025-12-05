@@ -141,6 +141,16 @@
                  @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
+<div>
+    <label for="late_tolerance_minutes" class="block text-sm font-medium text-gray-700 mb-2">
+        Batas Toleransi Terlambat (menit) <span class="text-red-500">*</span>
+    </label>
+    <input type="number" name="late_tolerance_minutes" id="late_tolerance_minutes"
+           value="{{ old('late_tolerance_minutes', $session->late_tolerance_minutes) }}" required
+           class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
+</div>
+
+
             {{-- Tombol Submit --}}
             <div class="flex justify-end gap-3 border-t border-gray-100 pt-8">
                 <a href="{{ route('lecturer.sessions.show', $session->id) }}"

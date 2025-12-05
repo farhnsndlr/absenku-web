@@ -16,15 +16,22 @@ return new class extends Migration
             $table->foreignId('lecturer_id')
                 ->constrained('users')
                 ->onDelete('cascade');
-            $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->foreignId('course_id')
+                ->constrained('courses')
+                ->onDelete('cascade');
             $table->string('class_name', 50);
             $table->date('session_date');
             $table->time('start_time');
             $table->time('end_time');
             $table->enum('learning_type', ['online', 'offline']);
-            $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null');
+            $table->foreignId('location_id')
+                ->nullable()
+                ->constrained('locations')
+                ->onDelete('set null');
             $table->enum('status', ['scheduled', 'open', 'closed'])->default('scheduled');
+            $table->text('description')->nullable();
             $table->string('session_token', 10)->nullable()->unique();
+            $table->integer('late_tolerance_minutes')->default(10); 
             $table->timestamps();
         });
     }
@@ -34,9 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendance_sessions', function (Blueprint $table) {
-            $table->dropForeign(['location_id']);
-            $table->dropColumn(['session_date', 'start_time', 'end_time', 'session_type', 'location_id', 'name']);
-        });
+        Schema::dropIfExists('attendance_sessions');
     }
 };

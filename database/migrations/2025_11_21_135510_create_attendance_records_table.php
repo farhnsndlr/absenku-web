@@ -32,7 +32,7 @@ return new class extends Migration
             // 4. Fitur Tambahan (Bisa nullable dulu)
             $table->string('photo_path', 2048)->nullable(); // URL Cloudinary
             $table->string('location_maps')->nullable();   // Lat,Long string
-            $table->enum('learning_type', ['online', 'onsite'])->default('onsite'); // Default onsite
+            $table->enum('learning_type', ['online', 'offline'])->default('offline'); // Default onsite
 
             $table->timestamps();
 
