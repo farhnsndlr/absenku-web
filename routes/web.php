@@ -121,10 +121,22 @@ Route::middleware('auth')->group(function () {
         // Dashboard
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
+        // Route untuk menampilkan form input token
+        Route::get('/presensi/input', [StudentAttendanceController::class, 'showTokenForm'])->name('attendance.input');
+
+        // Route untuk memproses submit token (POST)
+        Route::post('/presensi/process', [StudentAttendanceController::class, 'processToken'])->name('attendance.process');
+
         // Attendance Check-in
         Route::prefix('absensi')->name('attendance.')->group(function () {
             Route::get('/', [StudentAttendanceController::class, 'index'])->name('index');
             Route::post('/{session}/check-in', [StudentAttendanceController::class, 'store'])->name('store');
         });
+
+        Route::post('/{session}/permission', [StudentAttendanceController::class, 'permission'])
+            ->name('permission');
+
+        Route::get('/student/attendance/{sessionId}/checkin', [StudentAttendanceController::class, 'checkinForm'])->name('student.checkin.form');
+        Route::post('/student/attendance/{sessionId}/checkin', [StudentAttendanceController::class, 'submitCheckin'])->name('student.checkin.submit');
     });
 });

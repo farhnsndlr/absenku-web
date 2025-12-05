@@ -52,7 +52,7 @@ class Course extends Model
             'course_enrollments',
             'course_id',
             'student_profile_id'
-        )->withTimestamps();
+        )->withTimestamps()->withPivot('class_name');
     }
 
     public function enrollments()

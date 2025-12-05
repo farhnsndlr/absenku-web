@@ -109,7 +109,6 @@ class LecturerSessionController extends Controller
 
         // Generate token unik 6 karakter (huruf besar)
         $validated['session_token'] = Str::upper(Str::random(6));
-
         $validated['lecturer_id'] = Auth::id();
 
         // Status awal 'scheduled'
@@ -167,10 +166,8 @@ class LecturerSessionController extends Controller
     {
         $session = AttendanceSession::with(['course', 'location'])
             ->findOrFail($id);
-
         $locations = Location::all(); // jika ingin bisa ganti lokasi
         $courses = Course::where('lecturer_id', Auth::user()->id)->get();
-
 
         return view('lecturer.sessions.edit', compact('session', 'locations', 'courses'));
     }
@@ -193,10 +190,9 @@ class LecturerSessionController extends Controller
             'class_name' => ['required', 'string', 'max:50'],
             'learning_type' => ['required', 'in:online,offline'],
             // -------------------------------
-
             // Validasi lokasi: wajib hanya jika tipenya offline
             'location_id' => [
-                'required_if:session_type,offline',
+                'required_if:learning_type,offline',
                 'nullable',
                 Rule::exists('locations', 'id'),
             ],
@@ -230,6 +226,7 @@ class LecturerSessionController extends Controller
         }
 
         $session->delete();
+
         return redirect()->route('lecturer.sessions.index')
             ->with('success', 'Sesi kelas berhasil dihapus.');
     }
