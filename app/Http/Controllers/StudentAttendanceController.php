@@ -251,87 +251,130 @@ class StudentAttendanceController extends Controller
 
     public function processToken(Request $request)
     {
-        // 1. Validasi Input Dasar
         $request->validate([
-            'token' => 'required|string|size:6', // Token harus 6 karakter
+            'token' => 'required|string|size:6',
+            'proof_photo' => 'required|image|mimes:jpeg,png,jpg|max:3072', // Max 3MB agar aman
         ], [
-            'token.required' => 'Harap masukkan token presensi.',
-            'token.size' => 'Token harus terdiri dari 6 karakter.',
+            'token.required' => 'Token sesi wajib diisi.',
+            'token.size' => 'Token harus 6 karakter.',
+            'proof_photo.required' => 'Bukti foto wajib diupload.',
+            'proof_photo.image' => 'File harus berupa gambar (jpg, png).',
         ]);
 
-        // Ambil user mahasiswa yang sedang login
         $user = Auth::user();
-        // Pastikan dia punya profil mahasiswa (jaga-jaga)
-        if (!$user->studentProfile) {
-            return back()->with('error', 'Data profil mahasiswa tidak ditemukan.');
-        }
-        $studentProfile = $user->studentProfile;
+        $studentProfile = $user->studentProfile; // Asumsi sudah dicek via middleware/helper
 
-        // Ubah input token jadi huruf besar semua biar konsisten
+        // 2. Cari Sesi Berdasarkan Token
         $inputToken = strtoupper($request->token);
-
-        // 2. Cari Sesi Berdasarkan Token di Database
-        // Kita eager load 'course' karena butuh datanya nanti
         $session = AttendanceSession::where('session_token', $inputToken)
-            ->with('course')
+            ->with(['course', 'location'])
             ->first();
 
-        // --- VALIDASI BERLAPIS (KEAMANAN) ---
+        // --- VALIDASI UMUM (Berlaku untuk Online & Offline) ---
 
-        // A. Cek apakah token ditemukan?
         if (!$session) {
-            // Gunakan withErrors untuk mengirim error spesifik ke field input
             return back()->withErrors(['token' => 'Token tidak valid atau sesi tidak ditemukan.'])->withInput();
         }
 
-        // B. Cek apakah status sesi OPEN?
         if ($session->status !== 'open') {
-            return back()->with('error', 'Sesi presensi ini sudah ditutup atau belum dibuka oleh dosen.');
+            return back()->with('error', 'Sesi presensi ini sudah ditutup.');
         }
 
-        // C. Cek Waktu (Apakah sekarang masih dalam rentang jam sesi?)
+        // Cek Waktu Menggunakan Carbon Object Lengkap
         $now = Carbon::now();
-        // Menggunakan accessor start_datetime dan end_datetime yang sudah kita buat di Model sebelumnya
+        // PENTING: Pastikan model AttendanceSession Anda memiliki accessor 'start_datetime' dan 'end_datetime'
+        // yang menggabungkan session_date dengan start_time/end_time.
         if (!$now->between($session->start_datetime, $session->end_datetime)) {
-            return back()->with('error', 'Waktu presensi untuk sesi ini sudah berakhir.');
+            return back()->with('error', 'Waktu presensi untuk sesi ini sudah di luar jadwal (' . $session->start_time->format('H:i') . ' - ' . $session->end_time->format('H:i') . ').');
         }
 
-        // D. CEK KRUSIAL: Apakah mahasiswa ini MENGAMBIL mata kuliah tersebut?
-        // Ini mencegah mahasiswa dari kelas lain absen sembarangan.
-        // Kita cek lewat relasi many-to-many di studentProfile
+        // Cek Enrollment
         $isEnrolled = $studentProfile->courses()
             ->where('courses.id', $session->course_id)
             ->exists();
 
         if (!$isEnrolled) {
-            return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini (' . $session->course->course_name . '). Presensi ditolak.');
+            return back()->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
         }
 
-        // E. Cek apakah mahasiswa sudah pernah absen di sesi ini sebelumnya? (Mencegah double input)
+        // Cek Double Check-in
         $alreadyCheckedIn = AttendanceRecord::where('session_id', $session->id)
             ->where('student_id', $studentProfile->id)
             ->exists();
 
         if ($alreadyCheckedIn) {
-            return back()->with('warning', 'Anda sudah berhasil melakukan presensi pada sesi ini sebelumnya.');
+            return back()->with('warning', 'Anda sudah melakukan presensi pada sesi ini sebelumnya.');
         }
 
-        // --- SEMUA CEK LOLOS, SIMPAN DATA ---
 
+        // --- LOGIKA KONDISIONAL: VALIDASI RADIUS (KHUSUS OFFLINE) ---
+
+        if ($session->learning_type === 'offline') {
+            // A. Validasi Keberadaan Data Lokasi
+            // Karena ini offline, kita WAJIBKAN koordinat dikirim oleh browser.
+            if (!$request->filled('latitude') || !$request->filled('longitude')) {
+                return back()->with('error', 'Gagal mendeteksi lokasi. Untuk sesi OFFLINE, Anda wajib mengaktifkan GPS/Izin Lokasi di browser dan mencoba lagi.');
+            }
+
+            // B. Validasi Keberadaan Data Lokasi di Sesi Dosen
+            if (!$session->location) {
+                return back()->with('error', 'Data lokasi sesi belum diatur oleh dosen. Hubungi dosen pengampu.');
+            }
+
+            // C. Hitung Jarak dan Cek Radius
+            $distance = $this->calculateDistance(
+                (float)$request->latitude,
+                (float)$request->longitude,
+                (float)$session->location->latitude,
+                (float)$session->location->longitude
+            );
+
+            $allowedRadius = $session->location->radius_meters ?? 100; // Default 100m
+
+            if ($distance > $allowedRadius) {
+                $distanceText = $distance > 1000 ? number_format($distance / 1000, 2) . ' km' : round($distance) . ' meter';
+                return back()->with('error', "Anda berada di luar radius toleransi presensi. Jarak Anda: {$distanceText} (Maksimal: {$allowedRadius}m). Silakan mendekat ke lokasi kelas.");
+            }
+        }
+        // JIKA SESSION ONLINE: Blok 'if' di atas dilewati sepenuhnya. Tidak ada cek lokasi.
+
+
+        // --- PROSES PENYIMPANAN DATA (Jika semua validasi lolos) ---
+
+        $photoPath = null;
         try {
-            // Simpan rekam kehadiran
+            // 1. Upload Foto
+            if ($request->hasFile('proof_photo')) {
+                // Gunakan storage public Laravel agar mudah dikelola
+                $photoPath = $request->file('proof_photo')->store('attendance_proofs', 'public');
+            }
+
+            // 2. Tentukan Status (Hadir/Telat)
+            $tolerance = $session->late_tolerance_minutes ?? 15;
+            $lateThreshold = $session->start_datetime->copy()->addMinutes($tolerance);
+            $status = $now->lte($lateThreshold) ? 'present' : 'late';
+
+            // 3. Simpan Record Presensi
             AttendanceRecord::create([
                 'session_id' => $session->id,
                 'student_id' => $studentProfile->id,
-                'status' => 'present', // Untuk sementara anggap 'hadir' jika berhasil input token
+                'status' => $status,
                 'submission_time' => $now,
-                // Nanti bisa ditambah photo_path atau lokasi jika fitur sudah ada
+                'proof_photo' => $photoPath,
+                // Simpan koordinat jika ada (online mungkin null, offline pasti ada)
+                // Pastikan kolom latitude/longitude di database Anda 'nullable'
+                'latitude' => $request->input('latitude'),
+                'longitude' => $request->input('longitude'),
             ]);
 
-            // Redirect ke dashboard dengan pesan sukses
-            return redirect()->route('student.dashboard')->with('success', 'Presensi berhasil! Kehadiran Anda di mata kuliah ' . $session->course->course_name . ' telah tercatat.');
+            $message = $status === 'present' ? 'Presensi berhasil! Tepat waktu.' : 'Presensi berhasil, namun Anda tercatat terlambat.';
+            return redirect()->route('student.dashboard')->with('success', $message);
         } catch (\Exception $e) {
-            // Tangani jika ada error database tak terduga
+            // Bersihkan foto jika gagal simpan ke DB
+            if ($photoPath && Storage::disk('public')->exists($photoPath)) {
+                Storage::disk('public')->delete($photoPath);
+            }
+            // Log error aslinya untuk developer: Log::error($e);
             return back()->with('error', 'Terjadi kesalahan sistem saat menyimpan data. Silakan coba lagi.');
         }
     }
