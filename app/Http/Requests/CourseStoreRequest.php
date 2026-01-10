@@ -3,23 +3,23 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule; // Import Rule
+use Illuminate\Validation\Rule;
 
 class CourseStoreRequest extends FormRequest
 {
-    public function authorize(): bool { return true; } // Admin boleh akses
+    // Menentukan izin akses untuk request ini.
+    public function authorize(): bool { return true; }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
         return [
-            // Kode MK harus unik
             'course_code' => ['required', 'string', 'max:20', 'unique:courses,course_code'],
             'course_name' => ['required', 'string', 'max:255'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'lecturer_id' => [
                 'required',
-                // Validasi bahwa ID yang dipilih ada di tabel users DAN rolenya 'lecturer'
                 Rule::exists('users', 'id')->where(function ($query) {
                     $query->where('role', 'lecturer');
                 }),
@@ -27,7 +27,7 @@ class CourseStoreRequest extends FormRequest
         ];
     }
 
-    // (Opsional) Pesan error kustom
+    // Menentukan pesan error khusus.
     public function messages(): array
     {
         return [

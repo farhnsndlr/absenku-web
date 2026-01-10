@@ -1,4 +1,8 @@
-@extends('layouts.student')
+@extends('layouts.dashboard')
+
+@section('navigation')
+    @include('student.partials.navigation')
+@endsection
 
 @section('content')
 <h2>Form Presensi</h2>
@@ -48,7 +52,7 @@ function success(pos) {
     document.getElementById("lat").value = lat;
     document.getElementById("lng").value = lng;
 
-    // Init Map
+    // Inisialisasi peta
     const map = L.map('map').setView([lat, lng], 18);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -63,7 +67,7 @@ function success(pos) {
 
     L.marker([classLat, classLng], {color: 'red'}).addTo(map).bindPopup("Lokasi Kelas");
 
-    // Circle Geofence
+    // Lingkaran geofence
     L.circle([classLat, classLng], {
         radius: radius,
         color: 'red',

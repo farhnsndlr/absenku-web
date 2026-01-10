@@ -6,7 +6,26 @@
 @section('content')
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {{-- Header: Pencarian & Tombol Tambah --}}
-        <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between gap-4">
+        <div class="p-4 border-b border-gray-100 flex flex-col gap-4">
+            <div class="flex flex-wrap items-center gap-2">
+                @php
+                    $activeRole = request('role');
+                    $roleTabs = [
+                        '' => 'Semua',
+                        'student' => 'Mahasiswa',
+                        'lecturer' => 'Dosen',
+                        'admin' => 'Admin',
+                    ];
+                @endphp
+                @foreach($roleTabs as $roleValue => $roleLabel)
+                    <a href="{{ route('admin.users.index', array_filter(['role' => $roleValue, 'search' => request('search')])) }}"
+                       class="px-3 py-1.5 rounded-full text-sm font-medium border transition
+                       {{ $activeRole === $roleValue ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                        {{ $roleLabel }}
+                    </a>
+                @endforeach
+            </div>
+            <div class="flex flex-col md:flex-row justify-between gap-4">
             {{-- Form Pencarian & Filter (GET request ke halaman ini lagi) --}}
             <form action="{{ route('admin.users.index') }}" method="GET" class="flex flex-1 gap-2">
                 {{-- Filter Role --}}
@@ -29,6 +48,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Tambah Pengguna
             </a>
+            </div>
         </div>
 
         {{-- Tabel Data --}}
@@ -69,6 +89,11 @@
                                     <p class="text-xs text-gray-500 mt-1">
                                         ID: {{ $user->profile->nid ?? $user->profile->npm ?? '-' }}
                                     </p>
+                                    @if($user->role === 'student')
+                                        <p class="text-xs text-gray-500">
+                                            Kelas: {{ $user->profile->class_name ?? '-' }}
+                                        </p>
+                                    @endif
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-gray-500">
@@ -82,7 +107,10 @@
                                     </a>
                                     {{-- Tombol Delete (Perlu Form & Konfirmasi) --}}
                                     @if(auth()->user()->id !== $user->id) {{-- Mencegah hapus diri sendiri --}}
-                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Data profil terkait juga akan dihapus.')">
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                              data-confirm-title="Hapus Pengguna"
+                                              data-confirm-message="Apakah Anda yakin ingin menghapus pengguna ini? Data profil terkait juga akan dihapus."
+                                              data-confirm-ok="Hapus">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">

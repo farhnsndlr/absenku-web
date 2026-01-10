@@ -12,36 +12,30 @@ class NewSessionCreated extends Notification
 {
     use Queueable;
 
-    public $session; // Variabel untuk menyimpan data sesi
+    public $session;
 
-    /**
-     * Create a new notification instance.
-     */
+    // Menangani aksi __construct.
     public function __construct(AttendanceSession $session)
     {
         $this->session = $session;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
+    // Menentukan channel notifikasi.
     public function via(object $notifiable): array
     {
-        return ['database']; // Kita simpan di database saja
+        return ['database'];
     }
 
-    /**
-     * Get the array representation of the notification.
-     * Data ini yang akan disimpan di kolom 'data' tabel notifications.
-     */
+    // Menentukan payload notifikasi.
     public function toArray(object $notifiable): array
     {
         return [
             'session_id' => $this->session->id,
             'course_name' => $this->session->course->course_name,
-            'message' => 'Sesi baru dibuka untuk ' . $this->session->course->course_name,
-            'url' => route('student.attendance.create', $this->session->id), // Link langsung ke absen
-            'type' => 'info', // info, success, warning, error
+            'title' => 'Sesi Presensi Baru',
+            'message' => 'Sesi presensi baru untuk ' . $this->session->course->course_name,
+            'url' => route('student.attendance.index'),
+            'type' => 'info',
         ];
     }
 }

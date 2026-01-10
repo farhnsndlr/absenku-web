@@ -13,6 +13,7 @@ use App\Http\Requests\PasswordUpdateRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\Course;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
@@ -130,28 +131,22 @@ class ProfileController extends Controller
         return compact('totalCourses', 'totalStudents', 'averageAttendance', 'todaysSessions', 'courseAttendanceStatus');
     }
 
-    /**
-     * Menampilkan halaman profil pengguna (Method show).
-     */
+    // Menampilkan profil beserta data sesuai role.
     public function show()
     {
         $user = Auth::user();
         $user->load('profile');
 
-        // Ambil data dashboard (jika dosen)
         $dashboardData = $this->getLecturerDashboardData($user);
 
-        // Inisialisasi variabel untuk mahasiswa (default kosong agar tidak error jika bukan mahasiswa)
         $stats = [];
         $todaysSchedule = collect();
         $recentHistory = collect();
 
-        // --- LOGIKA KHUSUS MAHASISWA ---
         if ($user->role === 'student' && $user->studentProfile) {
             $studentProfileId = $user->studentProfile->id;
             $todayStr = Carbon::today()->toDateString();
 
-            // 1. Hitung Statistik
             $rawStats = AttendanceRecord::where('student_id', $studentProfileId)
                 ->selectRaw('
                     sum(status = "present") as present,
@@ -169,7 +164,6 @@ class ProfileController extends Controller
                 'total_attendance' => ($rawStats->present ?? 0) + ($rawStats->late ?? 0),
             ];
 
-            // 2. Ambil Jadwal Hari Ini
             $enrolledCourseIds = $user->studentProfile->courses()->pluck('courses.id');
 
             $todaysSchedule = AttendanceSession::whereIn('course_id', $enrolledCourseIds)
@@ -184,37 +178,46 @@ class ProfileController extends Controller
                 ->orderBy('start_time', 'asc')
                 ->get();
 
-            // 3. Ambil Riwayat Terakhir (5 Data)
             $recentHistory = AttendanceRecord::where('student_id', $studentProfileId)
                 ->with(['session.course'])
                 ->orderBy('submission_time', 'desc')
                 ->take(5)
                 ->get();
         }
-        // --------------------------------
 
         $additionalData = [];
         if ($user->role === 'student' && $user->profile instanceof StudentProfile) {
-            // Ambil courses dengan data pivot (class_name)
             $coursesEnrolled = $user->profile->courses()->with('lecturer.profile')->get();
             $additionalData['courses_enrolled'] = $coursesEnrolled;
 
-            // TAMBAHAN: Ambil daftar kelas unik dari course enrollment
             $studentClasses = $coursesEnrolled
-                ->pluck('pivot.class_name')  // Ambil class_name dari pivot
-                ->filter()                    // Hilangkan nilai null/kosong
-                ->unique()                    // Ambil nilai unik
-                ->values();                   // Reset index array
+                ->pluck('pivot.class_name')
+                ->filter()
+                ->unique()
+                ->values();
 
             $additionalData['student_classes'] = $studentClasses;
         }
 
-        // Tambahan untuk dosen
         if ($user->role === 'lecturer' && $user->profile instanceof LecturerProfile) {
             $additionalData['courses_taught'] = $user->profile->courses()->get();
         }
 
-        // Kirim semua data ke view
+        if (isset($recentHistory) && $recentHistory instanceof Collection) {
+            $recentHistoryPage = max(1, (int) request()->query('recent_history_page', 1));
+            $recentHistory = new LengthAwarePaginator(
+                $recentHistory->forPage($recentHistoryPage, 5)->values(),
+                $recentHistory->count(),
+                5,
+                $recentHistoryPage,
+                [
+                    'path' => request()->url(),
+                    'pageName' => 'recent_history_page',
+                    'query' => request()->query(),
+                ]
+            );
+        }
+
         return view('profile.show', array_merge([
             'user' => $user,
             'additionalData' => $additionalData,
@@ -237,16 +240,22 @@ class ProfileController extends Controller
         return $roleViews[$role] ?? 'layouts.dashboard';
     }
 
+    // Menampilkan form edit profil.
     public function edit()
     {
         $user = Auth::user();
         $dashboardData = $this->getLecturerDashboardData($user);
+        $dashboardView = $this->getDashboardView();
+        if ($user->role === 'student') {
+            $dashboardView = 'layouts.dashboard';
+        }
         return view('profile.edit', array_merge([
             'user' => $user,
-            'dashboardView' => $this->getDashboardView()
+            'dashboardView' => $dashboardView,
         ], $dashboardData));
     }
 
+    // Memperbarui data profil.
     public function update(ProfileUpdateRequest $request)
     {
         $user = $request->user();
@@ -266,7 +275,7 @@ class ProfileController extends Controller
 
         $user->update(\Illuminate\Support\Arr::only($validatedData, ['name', 'email', 'profile_photo_path']));
 
-        $profileData = array_filter($request->only(['phone_number', 'nid', 'npm', 'full_name']), function ($value) {
+        $profileData = array_filter($request->only(['phone_number', 'nid', 'npm', 'class_name', 'full_name']), function ($value) {
             return !is_null($value) && $value !== '';
         });
 
@@ -277,15 +286,21 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('status', 'profile-updated');
     }
 
+    // Menampilkan form ubah password.
     public function editPassword()
     {
         $user = Auth::user();
         $dashboardData = $this->getLecturerDashboardData($user);
+        $dashboardView = $this->getDashboardView();
+        if ($user->role === 'student') {
+            $dashboardView = 'layouts.dashboard';
+        }
         return view('profile.password', array_merge([
-            'dashboardView' => $this->getDashboardView(),
+            'dashboardView' => $dashboardView,
         ], $dashboardData));
     }
 
+    // Memperbarui password akun.
     public function updatePassword(PasswordUpdateRequest $request)
     {
         $user = $request->user();

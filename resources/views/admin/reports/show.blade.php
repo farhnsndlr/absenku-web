@@ -22,7 +22,18 @@
         </span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h10"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Kode Sesi</p>
+                <p class="text-base font-semibold text-gray-900">{{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}</p>
+            </div>
+        </div>
         <div class="flex items-start gap-3">
             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +190,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             @if($record->photo_path)
-                                <button onclick="showPhoto('{{ asset('storage/' . $record->photo_path) }}')" class="text-blue-600 hover:text-blue-800 font-medium">
+                                <button onclick="showPhoto('{{ route('attendance.media', $record->photo_path) }}')" class="text-blue-600 hover:text-blue-800 font-medium">
                                     Lihat Foto
                                 </button>
                             @else
@@ -229,7 +240,7 @@ function closePhoto() {
     document.getElementById(&#39;photoModal&#39;).classList.add(&#39;hidden&#39;);
 }
 
-// Close modal when clicking outside
+// Tutup modal saat klik di luar
 document.getElementById(&#39;photoModal&#39;)?.addEventListener(&#39;click&#39;, function(e) {
     if (e.target === this) {
         closePhoto();

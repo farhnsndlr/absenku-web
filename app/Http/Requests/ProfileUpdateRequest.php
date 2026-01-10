@@ -9,16 +9,17 @@ use App\Models\StudentProfile;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool
     {
-        return true; // Izinkan semua user yang login
+        return true;
     }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
         $user = $this->user();
 
-        // Aturan dasar untuk tabel users
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -27,20 +28,17 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                // Email harus unik, tapi abaikan untuk user yang sedang login saat ini
                 Rule::unique('users')->ignore($user->id),
             ],
             'phone_number' => ['nullable', 'string', 'max:20'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ];
 
-        // Aturan tambahan berdasarkan tipe profil
         if ($user->profile_type === LecturerProfile::class) {
-            // Validasi NID untuk dosen
             $rules['nid'] = ['required', 'string', 'max:20'];
         } elseif ($user->profile_type === StudentProfile::class) {
-            // Validasi NPM untuk mahasiswa
             $rules['npm'] = ['required', 'string', 'max:20'];
+            $rules['class_name'] = ['required', 'string', 'max:50'];
         }
 
         return $rules;

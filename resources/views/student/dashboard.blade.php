@@ -7,20 +7,7 @@
 
 {{-- Navigasi Sidebar (Khusus Mahasiswa) --}}
 @section('navigation')
-    <div class="space-y-1">
-        <a href="{{ route('student.dashboard') }}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all
-           {{ request()->routeIs('student.dashboard') ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <svg class="w-[20px] h-[20px] {{ request()->routeIs('student.dashboard') ? 'text-blue-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            <span>Beranda</span>
-        </a>
-        <a href="{{ route('student.attendance.index') }}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all
-           {{ request()->routeIs('student.attendance.*') ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-            <svg class="w-[20px] h-[20px] {{ request()->routeIs('student.attendance.*') ? 'text-blue-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-            <span>Absensi (Check-In)</span>
-        </a>
-    </div>
+    @include('student.partials.navigation')
 @endsection
 
 {{-- Konten Utama Dashboard --}}
@@ -146,12 +133,14 @@
                         {{-- Logika Status Sesi --}}
                         @php
                             $now = \Carbon\Carbon::now();
-                            $myRecord = $session->records->first(); // Record absensi user yg login
-                            $startTime = \Carbon\Carbon::parse($session->start_time);
-                            $endTime = \Carbon\Carbon::parse($session->end_time);
+                            $myRecord = $session->records->first(); // Record absensi mahasiswa yang login
+                            $startTime = $session->start_date_time;
+                            $endTime = $session->end_date_time;
+                            $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+                            $endWithTolerance = $endTime->copy()->addMinutes($tolerance);
 
-                            $isOngoing = $now >= $startTime && $now <= $endTime;
-                            $isFinished = $now > $endTime;
+                            $isOngoing = $now >= $startTime && $now <= $endWithTolerance;
+                            $isFinished = $now > $endWithTolerance;
 
                             $statusBadge = ['text' => '', 'class' => ''];
 
@@ -164,6 +153,7 @@
                             } else {
                                 $statusBadge = ['text' => 'Akan Datang', 'class' => 'bg-gray-100 text-gray-800 border-gray-200'];
                             }
+                            $learningType = $session->learning_type ?? $session->session_type;
                         @endphp
 
                         <div class="p-6 hover:bg-gray-50/80 transition">
@@ -184,19 +174,25 @@
                                 {{-- Kolom Detail Mata Kuliah --}}
                                 <div class="flex-1">
                                     <h4 class="text-base font-bold text-gray-900 mb-2">{{ $session->course->course_name }}</h4>
-                                    <div class="text-sm text-gray-600 space-y-1.5">
+                                <div class="text-sm text-gray-600 space-y-1.5">
                                         <p class="flex items-center">
-                                            @if($session->session_type == 'online')
+                                            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Kode Sesi:</span>
+                                            <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                                                {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}
+                                            </span>
+                                        </p>
+                                        <p class="flex items-center">
+                                            @if($learningType == 'online')
                                                 <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                                             @else
                                                 <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                             @endif
-                                            <span class="truncate">{{ $session->location->location_name ?? 'Lokasi Daring' }}</span>
-                                            <span class="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase">{{ $session->session_type }}</span>
+                                            <span class="truncate">{{ $session->location->location_name ?? ($learningType === 'online' ? 'Lokasi Daring' : '-') }}</span>
+                                            <span class="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase">{{ $learningType }}</span>
                                         </p>
                                         <p class="flex items-center">
                                             <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                            <span class="truncate">{{ $session->course->lecturer->full_name ?? 'Dosen Pengampu' }}</span>
+                                            <span class="truncate">{{ $session->course->lecturer->name ?? $session->course->lecturer->profile->full_name ?? 'Dosen Pengampu' }}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -204,8 +200,8 @@
                                 {{-- Tombol Aksi (Hanya jika berlangsung & belum absen) --}}
                                 @if($isOngoing && !$myRecord)
                                     <div class="sm:self-center shrink-0">
-                                        <a href="{{ route('student.attendance.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition shadow-sm">
-                                            Check-In Sekarang
+                                        <a href="{{ route('student.attendance.index', ['session' => $session->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition shadow-sm">
+                                            Isi Sekarang
                                         </a>
                                     </div>
                                 @endif
@@ -235,7 +231,8 @@
                 <div class="divide-y divide-gray-100 flex-1">
                     @forelse($recentHistory as $record)
                         @php
-                            // Mapping status dan style
+                            $displayStatus = $record->computed_status ?? $record->status;
+                            // Pemetaan status dan gaya
                             $statusMap = [
                                 'present' => ['label' => 'Hadir', 'icon' => 'M5 13l4 4L19 7', 'color' => 'text-green-600 bg-green-100'],
                                 'late' => ['label' => 'Terlambat', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'text-orange-600 bg-orange-100'],
@@ -243,7 +240,7 @@
                                 'sick' => ['label' => 'Sakit', 'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'color' => 'text-yellow-600 bg-yellow-100'],
                                 'absent' => ['label' => 'Alpa', 'icon' => 'M6 18L18 6M6 6l12 12', 'color' => 'text-red-600 bg-red-100'],
                             ];
-                            $statusData = $statusMap[$record->status] ?? ['label' => $record->status, 'icon' => '', 'color' => 'text-gray-600 bg-gray-100'];
+                            $statusData = $statusMap[$displayStatus] ?? ['label' => $displayStatus, 'icon' => '', 'color' => 'text-gray-600 bg-gray-100'];
                         @endphp
                         <div class="p-4 hover:bg-gray-50/80 transition flex items-center gap-4">
                             {{-- Ikon Status --}}
@@ -257,6 +254,11 @@
                                 <p class="text-sm font-bold text-gray-900 truncate leading-tight">
                                     {{ $record->session->course->course_name ?? 'Mata Kuliah Dihapus' }}
                                 </p>
+                                @if($record->session)
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Kode: {{ 'S-' . str_pad($record->session->id, 5, '0', STR_PAD_LEFT) }}
+                                    </p>
+                                @endif
                                 <div class="flex items-center mt-1 text-xs text-gray-500">
                                      <svg class="w-3.5 h-3.5 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     {{ \Carbon\Carbon::parse($record->submission_time)->translatedFormat('d M Y, H:i') }}
@@ -274,6 +276,11 @@
                         </div>
                     @endforelse
                 </div>
+                @if($recentHistory->hasPages())
+                    <div class="px-6 py-4 border-t border-gray-100">
+                        {{ $recentHistory->withQueryString()->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

@@ -7,11 +7,12 @@ use Illuminate\Validation\Rule;
 
 class CourseUpdateRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool { return true; }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
-        // Ambil course yang sedang diedit dari route
         $course = $this->route('course');
 
         return [
@@ -19,7 +20,6 @@ class CourseUpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:20',
-                // Ignore ID course ini saat cek unique
                 Rule::unique('courses', 'course_code')->ignore($course->id)
             ],
             'course_name' => ['required', 'string', 'max:255'],

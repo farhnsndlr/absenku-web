@@ -55,6 +55,19 @@
                 </div>
             @endif
 
+            <div class="mb-6">
+                <a href="{{ route('auth.google') }}"
+                   class="w-full inline-flex items-center justify-center gap-3 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:bg-blue-50 transition">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8a6.4 6.4 0 010-12.8c1.8 0 3.1.8 3.8 1.5l2.6-2.5A9.9 9.9 0 0012 2.1 9.9 9.9 0 0012 22c5.7 0 9.5-4 9.5-9.6 0-.6-.1-1.1-.2-1.6H12z"/>
+                        <path fill="#34A853" d="M3.5 7.3l3.2 2.4A6 6 0 0112 4.6c1.8 0 3.1.8 3.8 1.5l2.6-2.5A9.9 9.9 0 0012 2.1a9.9 9.9 0 00-8.5 5.2z"/>
+                        <path fill="#FBBC05" d="M3.5 16.7A9.9 9.9 0 0012 22c2.7 0 5-1 6.7-2.6l-3.1-2.4c-.9.6-2 1-3.6 1a6 6 0 01-5.7-4l-2.8 2.3z"/>
+                        <path fill="#4285F4" d="M21.3 12.4c0-.5-.1-1-.2-1.6H12v3.9h5.5c-.3 1.5-1.8 3.1-5.5 3.1-3.3 0-6-2.7-6-6s2.7-6 6-6c1.8 0 3.1.8 3.8 1.5l2.6-2.5A9.9 9.9 0 0012 2.1c-5.5 0-9.9 4.4-9.9 9.9s4.4 9.9 9.9 9.9c5.7 0 9.5-4 9.5-9.6z"/>
+                    </svg>
+                    Daftar dengan Google
+                </a>
+            </div>
+
             <form method="POST" action="{{ route('register') }}" class="space-y-5">
                 @csrf
 

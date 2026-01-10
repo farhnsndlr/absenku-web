@@ -11,34 +11,29 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Notifications\NewSessionCreated;
 
 class LecturerSessionController extends Controller
 {
-    /**
-     * Menampilkan daftar sesi yang dibuat dosen ini.
-     */
+    // Menampilkan daftar sesi milik dosen.
     public function index()
     {
         $lecturerId = Auth::id();
 
-        // Ambil sesi yang course-nya diajar oleh dosen yang sedang login
         $sessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
             $query->where('lecturer_id', $lecturerId);
         })
-            ->with(['course', 'location']) // Eager load relasi agar efisien
-            ->orderBy('session_date', 'desc') // Urutkan dari yang terbaru
+            ->with(['course', 'location'])
+            ->orderBy('session_date', 'desc')
             ->orderBy('start_time', 'desc')
             ->paginate(10);
 
-        // Hitung total courses untuk dosen ini (untuk dashboard stats)
         $totalCourses = Course::where('lecturer_id', $lecturerId)->count();
 
-        // Hitung total sessions (opsional, jika diperlukan di view)
         $totalSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
             $query->where('lecturer_id', $lecturerId);
         })->count();
 
-        // Statistik tambahan yang mungkin diperlukan
         $upcomingSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
             $query->where('lecturer_id', $lecturerId);
         })
@@ -61,20 +56,16 @@ class LecturerSessionController extends Controller
         ));
     }
 
-    /**
-     * Menampilkan form buat sesi baru.
-     */
+    // Menampilkan form pembuatan sesi.
     public function create()
     {
         $lecturerId = Auth::id();
 
-        // Ambil mata kuliah yang diajar dosen ini, lengkap dengan data lokasi default-nya
         $myCourses = Course::where('lecturer_id', $lecturerId)
-            ->with('location') // Eager load lokasi default
+            ->with('location')
             ->orderBy('course_name')
             ->get();
 
-        // Ambil semua lokasi untuk dropdown pilihan (jika dosen ingin mengubah lokasi)
         $locations = Location::orderBy('location_name')->get();
 
         if ($myCourses->isEmpty()) {
@@ -82,63 +73,69 @@ class LecturerSessionController extends Controller
                 ->with('error', 'Anda belum memiliki mata kuliah yang diampu. Hubungi Admin.');
         }
 
-        // Kita perlu mengirim data default mata kuliah dalam format JSON ke view
-        // agar bisa dipakai oleh Alpine.js untuk mengisi form secara otomatis.
         $coursesDefaults = $myCourses->mapWithKeys(function ($course) {
             return [$course->id => [
-                // Format waktu ke H:i agar sesuai dengan input type="time"
                 'start_time' => $course->start_time ? Carbon::parse($course->start_time)->format('H:i') : null,
                 'end_time' => $course->end_time ? Carbon::parse($course->end_time)->format('H:i') : null,
-                'session_type' => $course->session_type,
+                'learning_type' => $course->session_type,
                 'location_id' => $course->location_id,
             ]];
         });
 
-        // Hitung total courses untuk dashboard (jika view extends dashboard)
         $totalCourses = $myCourses->count();
 
         return view('lecturer.sessions.create', compact('myCourses', 'locations', 'coursesDefaults', 'totalCourses'));
     }
 
-    /**
-     * Menyimpan sesi baru.
-     */
+    // Menyimpan sesi baru dan mengirim notifikasi.
     public function store(StoreSessionRequest $request)
     {
         $validated = $request->validated();
 
-        // Generate token unik 6 karakter (huruf besar)
         $validated['session_token'] = Str::upper(Str::random(6));
         $validated['lecturer_id'] = Auth::id();
 
-        // Status awal 'scheduled'
         $validated['status'] = 'scheduled';
 
-        // Jika sesi online, pastikan location_id null meskipun ada inputan (untuk keamanan)
-        if ($validated['session_type'] === 'online') {
+        if ($validated['learning_type'] === 'online') {
             $validated['location_id'] = null;
         }
 
-        AttendanceSession::create($validated);
+        $session = AttendanceSession::create($validated);
+
+        $className = trim((string) ($session->class_name ?? ''));
+        $students = collect();
+
+        if ($className !== '') {
+            $students = $session->course->students()
+                ->wherePivot('class_name', $className)
+                ->with('user')
+                ->get()
+                ->map(function ($student) {
+                    return $student->user;
+                })
+                ->filter()
+                ->unique('id')
+                ->values();
+        }
+
+        foreach ($students as $user) {
+            $user->notify(new NewSessionCreated($session));
+        }
 
         return redirect()->route('lecturer.sessions.index')
             ->with('success', 'Sesi kelas baru berhasil dijadwalkan.');
     }
 
-    /**
-     * Menampilkan detail sesi (nanti untuk rekap absen).
-     */
+    // Menampilkan detail dan rekap sesi.
     public function show(AttendanceSession $session)
     {
-        // Pastikan dosen hanya bisa melihat sesi dari mata kuliah yang diajarnya
         if ($session->course->lecturer_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Load relasi yang dibutuhkan
-        $session->load(['course', 'location', 'attendanceRecords.student.studentProfile']);
+        $session->load(['course', 'location', 'attendanceRecords.student']);
 
-        // Hitung statistik untuk sesi ini
         $totalStudents = $session->attendanceRecords->count();
         $presentCount = $session->attendanceRecords->where('status', 'present')->count();
         $absentCount = $session->attendanceRecords->where('status', 'absent')->count();
@@ -148,7 +145,6 @@ class LecturerSessionController extends Controller
             ? round(($presentCount / $totalStudents) * 100, 2)
             : 0;
 
-        // Total courses untuk dashboard layout
         $totalCourses = Course::where('lecturer_id', Auth::id())->count();
 
         return view('lecturer.sessions.show', compact(
@@ -162,35 +158,33 @@ class LecturerSessionController extends Controller
         ));
     }
 
+    // Menampilkan form edit sesi.
     public function edit($id)
     {
         $session = AttendanceSession::with(['course', 'location'])
             ->findOrFail($id);
-        $locations = Location::all(); // jika ingin bisa ganti lokasi
+        $locations = Location::all();
         $courses = Course::where('lecturer_id', Auth::user()->id)->get();
 
         return view('lecturer.sessions.edit', compact('session', 'locations', 'courses'));
     }
 
+    // Memperbarui data sesi.
     public function update(Request $request, $id)
     {
-        // 1. Ambil data sesi beserta coursenya untuk cek otorisasi
         $session = AttendanceSession::with('course')->findOrFail($id);
 
-        // 2. Cek Otorisasi: Pastikan ini sesi milik dosen yang login
         if ($session->course->lecturer_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // 3. Lakukan Validasi dengan nama field YANG BENAR
         $validated = $request->validate([
             'session_date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['required', 'date_format:H:i'],
             'class_name' => ['required', 'string', 'max:50'],
             'learning_type' => ['required', 'in:online,offline'],
-            // -------------------------------
-            // Validasi lokasi: wajib hanya jika tipenya offline
+            'late_tolerance_minutes' => ['required', 'integer', 'min:0', 'max:180'],
             'location_id' => [
                 'required_if:learning_type,offline',
                 'nullable',
@@ -200,29 +194,32 @@ class LecturerSessionController extends Controller
             'status' => ['required', 'in:scheduled,open,closed'],
         ]);
 
-        // 4. Logika bisnis: Jika diubah jadi online, paksa lokasi jadi null
+        try {
+            $startTime = Carbon::createFromFormat('H:i', $validated['start_time']);
+            $endTime = Carbon::createFromFormat('H:i', $validated['end_time']);
+        } catch (\Exception $e) {
+            return back()->withErrors(['end_time' => 'Format jam tidak valid.'])->withInput();
+        }
+
+        if ($endTime->lte($startTime)) {
+            return back()->withErrors(['end_time' => 'Waktu selesai harus lebih akhir dari waktu mulai.'])->withInput();
+        }
+
         if ($validated['learning_type'] === 'online') {
             $validated['location_id'] = null;
         }
 
-        // 5. Update data dengan data yang sudah divalidasi
         $session->update($validated);
 
-        // 6. Redirect kembali dengan pesan sukses
         return redirect()->route('lecturer.sessions.show', $session->id)
             ->with('success', 'Sesi presensi berhasil diperbarui.');
     }
 
+    // Menghapus sesi.
     public function destroy(AttendanceSession $session)
     {
-        // Pastikan dosen hanya bisa menghapus sesi miliknya sendiri
         if ($session->course->lecturer_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
-        }
-
-        // Cek apakah sesi sudah ada yang absen. Jika ada, mungkin tidak boleh dihapus.
-        if ($session->attendanceRecords()->exists()) {
-            return back()->with('error', 'Sesi ini tidak bisa dihapus karena sudah ada mahasiswa yang melakukan absensi.');
         }
 
         $session->delete();

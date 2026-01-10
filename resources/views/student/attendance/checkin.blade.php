@@ -1,5 +1,9 @@
 @extends('layouts.dashboard')
 
+@section('navigation')
+    @include('student.partials.navigation')
+@endsection
+
 @section('title', 'Presensi Sesi')
 
 @section('content')
@@ -87,7 +91,7 @@
 
 @push('scripts')
 <script>
-    // 1. Script untuk Preview Image
+    // 1. Script untuk pratinjau gambar
     function previewImage(event) {
         const reader = new FileReader();
         reader.onload = function(){
@@ -98,7 +102,7 @@
         reader.readAsDataURL(event.target.files[0]);
     }
 
-    // 2. Script untuk Geolocation
+    // 2. Script untuk geolokasi
     document.addEventListener('DOMContentLoaded', function() {
         const submitBtn = document.getElementById('submitBtn');
         const locationStatus = document.getElementById('locationStatus');

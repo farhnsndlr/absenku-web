@@ -12,19 +12,18 @@ use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
+    // Mendaftarkan layanan ke container.
     public function register(): void
     {
-        //
     }
 
+    // Menyiapkan data bersama untuk layout.
     public function boot(): void
     {
-        // View Composer untuk semua view lecturer
         View::composer('lecturer.*', function ($view) {
             if (Auth::check() && Auth::user()->role === 'lecturer') {
                 $lecturerId = Auth::id();
 
-                // Hitung data yang dibutuhkan untuk dashboard
                 $totalCourses = Course::where('lecturer_id', $lecturerId)->count();
 
                 $totalSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
@@ -44,7 +43,6 @@ class AppServiceProvider extends ServiceProvider
                     ->where('status', 'completed')
                     ->count();
 
-                // Hitung total students dari semua attendance records
                 $totalStudents = AttendanceRecord::whereHas('session', function ($query) use ($lecturerId) {
                     $query->whereHas('course', function ($q) use ($lecturerId) {
                         $q->where('lecturer_id', $lecturerId);
@@ -67,7 +65,6 @@ class AppServiceProvider extends ServiceProvider
                     ->where('status', 'absent')
                     ->count();
 
-                // Hitung rata-rata kehadiran
                 $totalRecords = AttendanceRecord::whereHas('session', function ($query) use ($lecturerId) {
                     $query->whereHas('course', function ($q) use ($lecturerId) {
                         $q->where('lecturer_id', $lecturerId);
@@ -78,7 +75,6 @@ class AppServiceProvider extends ServiceProvider
                     ? round(($totalPresent / $totalRecords) * 100, 2)
                     : 0;
 
-                // Ambil sesi hari ini dengan data tambahan
                 $todaysSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
                     $query->where('lecturer_id', $lecturerId);
                 })
@@ -87,7 +83,6 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('start_time')
                     ->get()
                     ->map(function ($session) {
-                        // Tambahkan properti dinamis untuk kemudahan akses di view
                         $now = Carbon::now();
                         $startTime = $session->start_time->copy()->setDate(
                             Carbon::parse($session->session_date)->year,
@@ -117,7 +112,6 @@ class AppServiceProvider extends ServiceProvider
                         return $session;
                     });
 
-                // Status kehadiran per mata kuliah
                 $courses = Course::where('lecturer_id', $lecturerId)->get();
                 $courseAttendanceStatus = $courses->map(function ($course) {
                     $sessions = AttendanceSession::where('course_id', $course->id)->get();
@@ -142,7 +136,6 @@ class AppServiceProvider extends ServiceProvider
                     ];
                 });
 
-                // Share ke semua view
                 $view->with([
                     'totalCourses' => $totalCourses,
                     'totalSessions' => $totalSessions,

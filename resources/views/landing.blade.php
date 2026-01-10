@@ -16,6 +16,26 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .float-soft {
+            animation: floatSoft 7s ease-in-out infinite;
+        }
+
+        @keyframes floatSoft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body class="antialiased bg-white text-gray-800">
@@ -45,7 +65,7 @@
                                 'admin' => 'admin.dashboard',
                                 'lecturer' => 'lecturer.dashboard',
                                 'student' => 'student.dashboard',
-                                default => 'login', // Fallback jika role tidak dikenali
+                                default => 'login', // Cadangan jika role tidak dikenali
                             };
                         @endphp
                         <a href="{{ route($dashboardRoute) }}" class="text-base font-medium text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition">
@@ -68,7 +88,7 @@
         <section class="relative pt-20 pb-24 lg:pt-32 lg:pb-40 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <div>
+                    <div class="reveal" data-animate data-delay="0">
                         <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight mb-6">
                             Permudah Pencacatan Kehadiran demi <span class="text-blue-600">Prestasi Akademik</span>
                         </h1>
@@ -88,8 +108,8 @@
                         </div>
                     </div>
 
-                    <div class="relative lg:ml-10">
-                        <img src="https://placehold.co/600x500/e0e7ff/3b82f6?text=Ilustrasi+Absen+HP&font=roboto" alt="Ilustrasi Absensi Mobile" class="w-full h-auto rounded-3xl shadow-2xl transform hover:scale-105 transition duration-500">
+                    <div class="relative lg:ml-10 reveal" data-animate data-delay="120">
+                        <img src="https://placehold.co/600x500/e0e7ff/3b82f6?text=Ilustrasi+Absen+HP&font=roboto" alt="Ilustrasi Absensi Mobile" class="w-full h-auto rounded-3xl shadow-2xl transform hover:scale-105 transition duration-500 float-soft">
 
                         <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
                         <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
@@ -100,7 +120,7 @@
 
         <section id="features" class="py-24 bg-gray-50 relative">
              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-3xl mx-auto mb-20">
+                <div class="text-center max-w-3xl mx-auto mb-20 reveal" data-animate>
                     <p class="text-4xl font-extrabold text-gray-900 mb-6">
                         Dirancang untuk Semua Peran di Kampus
                     </p>
@@ -111,7 +131,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group">
+                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group reveal" data-animate data-delay="0">
                         <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -123,7 +143,7 @@
                         </p>
                     </div>
 
-                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group">
+                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group reveal" data-animate data-delay="120">
                         <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0a2.25 2.25 0 002.25 2.25h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -135,7 +155,7 @@
                         </p>
                     </div>
 
-                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group">
+                    <div class="bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group reveal" data-animate data-delay="240">
                         <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
@@ -200,60 +220,55 @@
         </section>
 
         <section class="bg-gray-50 py-16">
-            <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 px-6">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="text-center mb-10 reveal" data-animate>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Our Teams</h2>
+                    <p class="text-gray-600 mt-3 max-w-2xl mx-auto">
+                        Tim kecil dengan fokus besar: membangun pengalaman presensi yang rapi, cepat, dan dapat diandalkan.
+                    </p>
+                </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
-                <p class="text-gray-700 italic leading-relaxed">
-                    "AbsenKu telah merevolusi cara kami mengelola absensi. Sistem ini sangat mudah digunakan, dan informasi real-time yang tersedia sangat berharga bagi mahasiswa maupun dosen."
-                </p>
-                <div class="flex items-center gap-4 mt-6">
-                    <img src="/profile1.jpg" class="w-14 h-14 rounded-full object-cover" />
-                    <div>
-                    <h4 class="font-bold text-gray-900">Dr. Sari Dewi</h4>
-                    <span class="text-sm text-gray-500">Head of Computer Science Department</span>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="0">
+                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl font-bold text-blue-700">
+                            AR
+                        </div>
+                        <h4 class="mt-4 font-bold text-gray-900">Alya Rahma</h4>
+                        <p class="text-sm text-gray-500">Product Design</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
+                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-xl font-bold text-emerald-700">
+                            DN
+                        </div>
+                        <h4 class="mt-4 font-bold text-gray-900">Dimas Nugraha</h4>
+                        <p class="text-sm text-gray-500">Frontend Dev</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
+                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-xl font-bold text-amber-700">
+                            KS
+                        </div>
+                        <h4 class="mt-4 font-bold text-gray-900">Kirana Sari</h4>
+                        <p class="text-sm text-gray-500">Backend Dev</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
+                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center text-xl font-bold text-rose-700">
+                            FR
+                        </div>
+                        <h4 class="mt-4 font-bold text-gray-900">Fahri Ramadhan</h4>
+                        <p class="text-sm text-gray-500">Data & QA</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs sm:col-span-2 lg:col-span-1 lg:col-start-3 reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
+                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-xl font-bold text-purple-700">
+                            NP
+                        </div>
+                        <h4 class="mt-4 font-bold text-gray-900">Nadia Putri</h4>
+                        <p class="text-sm text-gray-500">Project Lead</p>
                     </div>
                 </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
-                <p class="text-gray-700 italic leading-relaxed">
-                    "Dulu pengecekan absensi adalah tugas yang membosankan, tetapi AbsenKu membuatnya menjadi sangat mudah. Fitur geofencing memastikan keakuratan, dan laporan yang dihasilkan benar-benar menghemat banyak waktu."
-                </p>
-                <div class="flex items-center gap-4 mt-6">
-                    <img src="/profile2.jpg" class="w-14 h-14 rounded-full object-cover" />
-                    <div>
-                    <h4 class="font-bold text-gray-900">Budi Santoso</h4>
-                    <span class="text-sm text-gray-500">Lecturer, Faculty of Computer Science</span>
-                    </div>
-                </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
-                <p class="text-gray-700 italic leading-relaxed">
-                    "Sebagai mahasiswa, AbsenKu benar-benar luar biasa! Saya dapat dengan mudah melihat riwayat kehadiran dan status setiap kelas. Tidak ada lagi tanda tangan manual atau kebingungan."
-                </p>
-                <div class="flex items-center gap-4 mt-6">
-                    <img src="/profile3.jpg" class="w-14 h-14 rounded-full object-cover" />
-                    <div>
-                    <h4 class="font-bold text-gray-900">Rina Wijaya</h4>
-                    <span class="text-sm text-gray-500">Student, Information System</span>
-                    </div>
-                </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl shadow-lg flex flex-col justify-between min-h-[260px]">
-                <p class="text-gray-700 italic leading-relaxed">
-                    “Dengan AbsenKu, administrasi kelas jadi jauh lebih terkontrol. Dosen dapat memantau kehadiran secara cepat, dan mahasiswa merasa lebih transparan. Benar-benar solusi modern untuk dunia perkuliahan.”
-                </p>
-                <div class="flex items-center gap-4 mt-6">
-                    <img src="/profile4.jpg" class="w-14 h-14 rounded-full object-cover" />
-                    <div>
-                    <h4 class="font-bold text-gray-900">Ferdi Januar</h4>
-                    <span class="text-sm text-gray-500">Student, Information System</span>
-                    </div>
-                </div>
-                </div>
-
             </div>
         </section>
 
@@ -313,6 +328,51 @@
         © 2025 AbsenKu. All rights reserved.
     </div>
 </footer>
+
+<button id="scroll-to-top"
+        type="button"
+        class="fixed bottom-5 right-5 z-[60] hidden h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+    <span class="sr-only">Scroll ke atas</span>
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+    </svg>
+</button>
+
+<script>
+    const scrollButton = document.getElementById('scroll-to-top');
+    if (scrollButton) {
+        const toggleScrollButton = () => {
+            if (window.scrollY > 320) {
+                scrollButton.classList.remove('hidden');
+                scrollButton.classList.add('flex');
+            } else {
+                scrollButton.classList.add('hidden');
+                scrollButton.classList.remove('flex');
+            }
+        };
+        toggleScrollButton();
+        window.addEventListener('scroll', toggleScrollButton);
+        scrollButton.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    const animatedNodes = document.querySelectorAll('[data-animate]');
+    if (animatedNodes.length) {
+        const observer = new IntersectionObserver((entries, currentObserver) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const node = entry.target;
+                const delay = Number(node.dataset.delay || 0);
+                node.style.transitionDelay = `${delay}ms`;
+                node.classList.add('is-visible');
+                currentObserver.unobserve(node);
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+
+        animatedNodes.forEach((node) => observer.observe(node));
+    }
+</script>
 
 
 </html>

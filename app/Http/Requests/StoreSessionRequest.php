@@ -9,52 +9,70 @@ use App\Models\Course;
 
 class StoreSessionRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool
     {
-        // Hanya user dengan role lecturer yang boleh akses
         return Auth::user()->role === 'lecturer';
     }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
         return [
-            // Course ID wajib ada di tabel courses DAN dosen pengampunya harus user yang sedang login
             'course_id' => [
                 'required',
                 Rule::exists('courses', 'id')->where(function ($query) {
                     $query->where('lecturer_id', Auth::id());
                 }),
             ],
-            // Tanggal sesi wajib date format, dan minimal hari ini (tidak boleh masa lalu)
             'session_date' => ['required', 'date', 'after_or_equal:today'],
-            // Nama Kelas (contoh 3KA15)
             'class_name' => ['required', 'string', 'max:50'],
-            // Format jam H:i (contoh: 08:00)
             'start_time' => ['required', 'date_format:H:i'],
-            // Jam selesai harus setelah jam mulai
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
-            // Tipe sesi online/offline
-            'session_type' => ['required', 'in:online,offline'],
-            // Lokasi wajib diisi JIKA tipe sesi offline, boleh null jika online
+            'end_time' => ['required', 'date_format:H:i'],
+            'learning_type' => ['required', 'in:online,offline'],
             'location_id' => [
-                'required_if:session_type,offline',
+                'required_if:learning_type,offline',
                 'nullable',
                 Rule::exists('locations', 'id'),
             ],
-            // Topik opsional
             'topic' => ['nullable', 'string', 'max:255'],
+            'late_tolerance_minutes' => ['required', 'integer', 'min:0', 'max:180'],
         ];
     }
 
-    // Pesan error kustom agar lebih jelas
+    // Menentukan pesan error khusus.
     public function messages()
     {
         return [
             'course_id.exists' => 'Mata kuliah tidak valid atau bukan mata kuliah yang Anda ampu.',
             'class_name.required' => 'Nama Kelas wajib diisi (contoh: 3KA15).',
             'session_date.after_or_equal' => 'Tanggal sesi tidak boleh di masa lalu.',
-            'end_time.after' => 'Waktu selesai harus lebih akhir dari waktu mulai.',
             'location_id.required_if' => 'Lokasi wajib dipilih untuk sesi Offline.',
+            'late_tolerance_minutes.required' => 'Batas toleransi terlambat wajib diisi.',
         ];
+    }
+
+    // Menangani aksi withValidator.
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $start = $this->input('start_time');
+            $end = $this->input('end_time');
+
+            if (!$start || !$end) {
+                return;
+            }
+
+            try {
+                $startTime = \Carbon\Carbon::createFromFormat('H:i', $start);
+                $endTime = \Carbon\Carbon::createFromFormat('H:i', $end);
+            } catch (\Exception $e) {
+                return;
+            }
+
+            if ($endTime->lte($startTime)) {
+                $validator->errors()->add('end_time', 'Waktu selesai harus lebih akhir dari waktu mulai.');
+            }
+        });
     }
 }

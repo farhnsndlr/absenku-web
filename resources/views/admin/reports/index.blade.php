@@ -156,6 +156,7 @@
                             <td class="px-6 py-4 text-sm">
                                 <div class="font-medium text-gray-900">{{ $session->course->course_name ?? '-' }}</div>
                                 <div class="text-gray-500 text-xs">{{ $session->course->course_code ?? '-' }}</div>
+                                <div class="text-gray-500 text-xs mt-1">Kode: {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ \Carbon\Carbon::parse($session->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($session->end_time)->format('H:i') }}

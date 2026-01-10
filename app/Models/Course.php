@@ -27,24 +27,19 @@ class Course extends Model
         'end_time' => 'datetime:H:i',
     ];
 
-    /**
-     * Relasi ke Dosen Pengampu.
-     * Karena lecturer_id di tabel courses merujuk ke tabel users,
-     * maka relasi ini harus ke model User.
-     */
+    // Relasi ke dosen pengampu.
     public function lecturer()
     {
         return $this->belongsTo(User::class, 'lecturer_id');
     }
 
-    /**
-     * Relasi ke Sesi Presensi (One-to-Many).
-     */
+    // Relasi ke sesi.
     public function sessions()
     {
         return $this->hasMany(AttendanceSession::class);
     }
 
+    // Relasi ke mahasiswa peserta.
     public function students()
     {
         return $this->belongsToMany(
@@ -55,16 +50,19 @@ class Course extends Model
         )->withTimestamps()->withPivot('class_name');
     }
 
+    // Relasi ke enrollment.
     public function enrollments()
     {
         return $this->hasMany(CourseEnrollment::class, 'course_id');
     }
 
+    // Relasi ke sesi presensi.
     public function attendanceSessions()
     {
         return $this->hasMany(AttendanceSession::class);
     }
 
+    // Relasi ke lokasi default.
     public function location()
 {
     return $this->belongsTo(Location::class, 'location_id');

@@ -8,17 +8,20 @@ use Illuminate\Validation\Rules\Password;
 
 class PasswordUpdateRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool
     {
         return true;
     }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
+        $user = $this->user();
+        $usesPassword = !empty($user?->password);
+
         return [
-            // Validasi password saat ini (harus cocok dengan di database)
-            'current_password' => ['required', 'current_password'],
-            // Validasi password baru (harus dikonfirmasi dan memenuhi standar keamanan)
+            'current_password' => $usesPassword ? ['required', 'current_password'] : ['nullable'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
