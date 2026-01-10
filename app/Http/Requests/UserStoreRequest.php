@@ -7,29 +7,29 @@ use Illuminate\Validation\Rule;
 
 class UserStoreRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool
     {
         return true;
-    } // Admin boleh akses
+    }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
         return [
-            // Data Akun Utama
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'], // butuh field password_confirmation di form
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'in:admin,lecturer,student'],
 
-            // Data Profil (Validasi Bersyarat)
-            // required_if: field ini wajib JIKA field lain bernilai tertentu
             'nid' => ['nullable', 'required_if:role,lecturer', 'string', 'max:20', 'unique:lecturer_profiles,nid'],
             'npm' => ['nullable', 'required_if:role,student', 'string', 'max:20', 'unique:student_profiles,npm'],
+            'class_name' => ['nullable', 'required_if:role,student', 'string', 'max:50'],
             'phone_number' => ['nullable', 'string', 'max:20'],
         ];
     }
 
-    // Opsional: Kustomisasi pesan error
+    // Menentukan pesan error khusus.
     public function messages(): array
     {
         return [

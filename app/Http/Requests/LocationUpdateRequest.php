@@ -6,15 +6,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LocationUpdateRequest extends FormRequest
 {
+    // Menentukan izin akses untuk request ini.
     public function authorize(): bool
     {
         return true;
     }
 
+    // Menentukan aturan validasi.
     public function rules(): array
     {
-        // Untuk validasi edit, kita tidak perlu mengabaikan ID karena tidak ada kolom unique
-        // (kecuali Anda ingin menambahkan kolom 'code' yang unik).
         return [
             'location_name' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric'],

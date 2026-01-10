@@ -20,6 +20,11 @@
             {{-- Detail Informasi Sesi (Grid 2 Kolom agar lebih rapi) --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-700">
                 <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h10"/></svg>
+                    <span class="font-semibold mr-2">Kode Sesi:</span>
+                    {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}
+                </div>
+                <div class="flex items-center">
                     <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span class="font-semibold mr-2">Tanggal:</span>
                     {{ \Carbon\Carbon::parse($session->session_date)->translatedFormat('l, d F Y') }}
@@ -140,7 +145,7 @@
                     </td>
                     <td class="p-3">
                         @if($rec->photo_path)
-                            <a href="{{ asset('storage/' . $rec->photo_path) }}" target="_blank"
+                            <a href="{{ route('attendance.media', $rec->photo_path) }}" target="_blank"
                                 class="text-indigo-600 font-semibold hover:underline">
                                 Lihat Foto
                             </a>

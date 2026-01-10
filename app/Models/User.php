@@ -22,24 +22,14 @@ class User extends Authenticatable
         'role',
         'profile_id',
         'profile_type',
-        'profile_photo_path', // Pastikan ini tetap ada
+        'profile_photo_path',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -52,39 +42,34 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: function (mixed $value, array $attributes) {
-                // Cek apakah ada path foto disimpan di database
                 if (isset($attributes['profile_photo_path']) && $attributes['profile_photo_path']) {
-                    // Jika ada, generate URL publik lengkap menggunakan Storage facade
-                    // Hasilnya misal: http://domain.com/storage/profile-photos/namafile.jpg
                     return Storage::url($attributes['profile_photo_path']);
                 }
 
-                // Jika tidak ada foto, kembalikan null.
-                // Nanti di view kita akan cek: if($user->profile_photo_url) { tampilkan img } else { tampilkan inisial }
                 return null;
             },
         );
     }
 
-    // Hapus relasi hasOne/belongsTo yang lama untuk lecturerProfile dan studentProfile
-    // Ganti dengan relasi polimorfik 'profile'
+    // Relasi polimorfik ke profil.
     public function profile(): MorphTo
     {
         return $this->morphTo();
     }
 
-    // Metode helper untuk akses langsung (opsional tapi bagus)
+    // Helper query untuk profil dosen.
     public function lecturerProfile()
     {
         return $this->profile()->where('profile_type', LecturerProfile::class);
     }
 
+    // Helper query untuk profil mahasiswa.
     public function studentProfile()
     {
         return $this->profile()->where('profile_type', StudentProfile::class);
     }
 
-    // Tambahkan metode ini untuk memastikan akses mudah ke profil yang tepat
+    // Accessor profil dosen.
     public function getLecturerProfileAttribute()
     {
         if ($this->profile_type === LecturerProfile::class) {
@@ -93,6 +78,7 @@ class User extends Authenticatable
         return null;
     }
 
+    // Accessor profil mahasiswa.
     public function getStudentProfileAttribute()
     {
         if ($this->profile_type === StudentProfile::class) {
@@ -101,9 +87,9 @@ class User extends Authenticatable
         return null;
     }
 
+    // Relasi mahasiswa pada mata kuliah.
     public function students()
     {
-        // Parameter ke-2 WAJIB diisi dengan nama tabel pivot kita: 'course_enrollments'
         return $this->belongsToMany(StudentProfile::class, 'course_enrollments', 'course_id', 'student_profile_id');
     }
 

@@ -62,6 +62,7 @@
             <h2 class="text-xl font-bold text-gray-900">{{ $session->course->course_name }}</h2>
             <p class="text-sm text-gray-500 font-medium">{{ $session->course->course_code }}</p>
             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-600">
+                <p><span class="font-medium text-gray-700">Kode Sesi:</span> {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}</p>
                 <p><span class="font-medium text-gray-700">Tanggal:</span> {{ $session->session_date->format('d M Y') }}</p>
                 <p><span class="font-medium text-gray-700">Waktu:</span> {{ $session->start_time->format('H:i') }} - {{ $session->end_time->format('H:i') }} WIB</p>
                 {{-- Tambahkan Nama Kelas --}}
@@ -89,11 +90,13 @@
                class="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-100 transition shadow-sm border border-blue-100">
                 Edit Sesi
             </a>
-            <form method="POST" action="{{ route('lecturer.sessions.destroy', $session->id) }}">
+            <form method="POST" action="{{ route('lecturer.sessions.destroy', $session->id) }}"
+                  data-confirm-title="Hapus Sesi"
+                  data-confirm-message="Yakin ingin menghapus sesi ini?"
+                  data-confirm-ok="Hapus">
                 @csrf
                 @method('DELETE')
-                <button onclick="return confirm('Yakin ingin menghapus sesi ini?')"
-                        class="px-4 py-2 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition shadow-sm border border-red-100">
+                <button class="px-4 py-2 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition shadow-sm border border-red-100">
                     Hapus Sesi
                 </button>
             </form>
@@ -124,13 +127,13 @@
             <tbody class="divide-y divide-gray-100 text-gray-700">
                 @forelse ($session->attendanceRecords as $record)
                 <tr class="hover:bg-gray-50/50 transition">
-                    <td class="px-6 py-4 font-medium text-gray-900">{{ $record->student->name }}</td>
-                    <td class="px-6 py-4">{{ $record->student->npm }}</td>
+                    <td class="px-6 py-4 font-medium text-gray-900">{{ $record->student->user->name ?? $record->student->full_name ?? '-' }}</td>
+                    <td class="px-6 py-4">{{ $record->student->npm ?? '-' }}</td>
                     <td class="px-6 py-4">{{ \Carbon\Carbon::parse($record->submission_time)->format('H:i:s') }} WIB</td>
                     <td class="px-6 py-4">
                         @if($record->photo_path)
-                            <div class="relative group w-14 h-14 rounded-lg overflow-hidden cursor-pointer shadow-sm border border-gray-200 hover:shadow-md transition" onclick="openPhoto('{{ $record->photo_path }}')">
-                                <img src="{{ $record->photo_path }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div class="relative group w-14 h-14 rounded-lg overflow-hidden cursor-pointer shadow-sm border border-gray-200 hover:shadow-md transition" onclick="openPhoto('{{ route('attendance.media', $record->photo_path) }}')">
+                                <img src="{{ route('attendance.media', $record->photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition duration-300"></div>
                             </div>
                         @else

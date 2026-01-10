@@ -29,7 +29,7 @@
 
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8"
          x-data="{
-            sessionType: '{{ old('session_type', $session->session_type) }}'
+            sessionType: '{{ old('learning_type', $session->learning_type ?? $session->session_type) }}'
          }">
 
         <form action="{{ route('lecturer.sessions.update', $session->id) }}" method="POST" class="space-y-6">
@@ -85,17 +85,17 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Sesi <span class="text-red-500">*</span></label>
                 <div class="flex items-center gap-6 mt-2">
                     <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="session_type" value="offline" x-model="sessionType"
+                        <input type="radio" name="learning_type" value="offline" x-model="sessionType"
                                class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-gray-900">Offline (Tatap Muka)</span>
                     </label>
                     <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="session_type" value="online" x-model="sessionType"
+                        <input type="radio" name="learning_type" value="online" x-model="sessionType"
                                class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-gray-900">Online (Daring)</span>
                     </label>
                 </div>
-                @error('session_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                @error('learning_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Lokasi (Hanya muncul jika Offline) --}}

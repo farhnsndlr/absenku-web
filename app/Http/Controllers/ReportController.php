@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
 use App\Models\Course;
-use App\Models\User; // Ganti StudentProfile dengan User
+use App\Models\User;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceReportExport;
@@ -15,25 +15,21 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ReportController extends Controller
 {
+    // Menampilkan laporan dengan filter.
     public function index(Request $request)
     {
         $user = Auth::user();
         $isLecturer = $user->role === 'lecturer';
 
-        // 1. Query Dasar untuk Sesi
         $query = AttendanceSession::with(['course', 'location']);
 
-        // 2. Terapkan Filter Global (Tanggal, Mata Kuliah, Tipe Sesi, Nama Kelas)
         $this->applyFilters($query, $request);
 
-        // 3. Filter Spesifik Role
         if ($isLecturer) {
-            // Dosen hanya melihat sesi dari MK yang diajarnya
             $query->whereHas('course', function (Builder $q) use ($user) {
                 $q->where('lecturer_id', $user->id);
             });
         } else {
-            // Admin bisa filter berdasarkan dosen tertentu
             if ($request->filled('lecturer_id')) {
                 $query->whereHas('course', function (Builder $q) use ($request) {
                     $q->where('lecturer_id', $request->lecturer_id);
@@ -41,35 +37,29 @@ class ReportController extends Controller
             }
         }
 
-        // 4. Ambil Data Sesi (Paginated)
         $sessions = $query->latest('session_date')
             ->latest('start_time')
             ->paginate(15)
-            ->withQueryString(); // Agar filter tetap ada saat pindah halaman
+            ->withQueryString();
 
-        // 5. Hitung Statistik (Berdasarkan filter yang sama)
         $statistics = $this->calculateStatistics($request, $isLecturer, $user->id);
 
-        // 6. Ambil Data untuk Dropdown Filter
         $coursesQuery = Course::orderBy('course_name');
         $classNamesQuery = AttendanceSession::distinct()->orderBy('class_name');
 
         if ($isLecturer) {
-            // Dropdown dosen hanya berisi data miliknya
             $coursesQuery->where('lecturer_id', $user->id);
             $classNamesQuery->whereHas('course', function ($q) use ($user) {
                 $q->where('lecturer_id', $user->id);
             });
-            $lecturers = collect(); // Dosen tidak butuh filter dosen
+            $lecturers = collect();
         } else {
-            // Dropdown admin berisi semua data
             $lecturers = User::where('role', 'lecturer')->orderBy('name')->get();
         }
 
         $courses = $coursesQuery->get();
         $classNames = $classNamesQuery->pluck('class_name')->filter();
 
-        // 7. Tentukan View Berdasarkan Role
         $viewName = $isLecturer ? 'lecturer.reports.index' : 'admin.reports.index';
 
         return view($viewName, compact(
@@ -81,34 +71,32 @@ class ReportController extends Controller
         ));
     }
 
+    // Menampilkan detail laporan per sesi.
     public function show($sessionId)
     {
         $user = Auth::user();
         $isLecturer = $user->role === 'lecturer';
 
-        // Eager load yang benar: course, location, dan record beserta mahasiswanya
         $session = AttendanceSession::with([
             'course',
             'location',
             'attendanceRecords.user'
         ])->findOrFail($sessionId);
 
-        // Cek Otorisasi Dosen
         if ($isLecturer && $session->course->lecturer_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses untuk melihat laporan sesi ini.');
         }
 
-        $records = $session->attendanceRecords; // Sudah di-eager load
+        $records = $session->attendanceRecords;
 
-        // Statistik untuk sesi ini
-        $totalPresent = $records->where('status', 'present')->count();
+        $totalPresent = $records->whereIn('status', ['present', 'late'])->count();
         $totalRecords = $records->count();
 
         $sessionStats = [
             'total_students' => $totalRecords,
             'present' => $totalPresent,
             'absent' => $records->where('status', 'absent')->count(),
-            'sick' => $records->where('status', 'sick')->count(),
+            'sick' => $records->whereIn('status', ['sick', 'permit'])->count(),
             'attendance_rate' => $totalRecords > 0
                 ? round(($totalPresent / $totalRecords) * 100, 1)
                 : 0
@@ -118,25 +106,21 @@ class ReportController extends Controller
         return view($viewName, compact('session', 'records', 'sessionStats'));
     }
 
+    // Mengekspor laporan presensi.
     public function export(Request $request)
     {
         $filters = $request->all();
         $user = Auth::user();
 
-        // Jika lecturer, tambahkan paksa filter lecturer_id
         if ($user->role === 'lecturer') {
             $filters['lecturer_id'] = $user->id;
         }
 
         $filename = 'Laporan_Absensi_' . now()->format('Ymd_His') . '.xlsx';
 
-        // Menggunakan class export baru yang sudah kita optimalkan
         return Excel::download(new AttendanceReportExport($filters), $filename);
     }
 
-    /**
-     * Menerapkan filter umum ke query builder.
-     */
     private function applyFilters(Builder $query, Request $request)
     {
         if ($request->filled('start_date')) {
@@ -148,27 +132,20 @@ class ReportController extends Controller
         if ($request->filled('course_id')) {
             $query->where('course_id', $request->course_id);
         }
-        // Gunakan nama kolom yang konsisten: learning_type
         if ($request->filled('learning_type')) {
             $query->where('learning_type', $request->learning_type);
         }
-        // Filter baru: Nama Kelas
         if ($request->filled('class_name')) {
             $query->where('class_name', $request->class_name);
         }
     }
 
-    /**
-     * Menghitung statistik global berdasarkan filter.
-     */
     private function calculateStatistics(Request $request, $isLecturer, $lecturerId)
     {
         $query = AttendanceSession::query();
 
-        // Terapkan filter global yang sama
         $this->applyFilters($query, $request);
 
-        // Terapkan filter role
         if ($isLecturer) {
             $query->whereHas('course', function ($q) use ($lecturerId) {
                 $q->where('lecturer_id', $lecturerId);
@@ -179,19 +156,17 @@ class ReportController extends Controller
             });
         }
 
-        // Hitung statistik sesi
-        // Gunakan clone() agar query dasar tidak berubah
         $totalSessions = (clone $query)->count();
         $onlineSessions = (clone $query)->where('learning_type', 'online')->count();
         $offlineSessions = (clone $query)->where('learning_type', 'offline')->count();
 
-        // Hitung statistik record (menggunakan whereIn session_id hasil filter)
-        // Ini lebih efisien daripada memuat semua record
         $sessionIds = $query->pluck('id');
 
-        // Gunakan query builder untuk agregat record
         $recordStats = AttendanceRecord::whereIn('session_id', $sessionIds)
-            ->selectRaw('count(*) as total, sum(status = "present") as present, sum(status = "absent") as absent, sum(status = "sick") as sick')
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(status in ("present","late")) as present')
+            ->selectRaw('sum(status = "absent") as absent')
+            ->selectRaw('sum(status in ("sick","permit")) as sick')
             ->first();
 
         return [

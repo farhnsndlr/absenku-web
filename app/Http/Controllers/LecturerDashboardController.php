@@ -12,9 +12,9 @@ use Carbon\Carbon;
 
 class LecturerDashboardController extends Controller
 {
+    // Menyiapkan data untuk dashboard dosen.
     public function index()
     {
-        // --- SETUP AWAL ---
         $user = Auth::user();
         if (!$user || $user->role !== 'lecturer' || !$user->lecturerProfile) {
             abort(403, 'Akses ditolak. Akun ini bukan dosen atau profil dosen belum ada.');
@@ -23,15 +23,10 @@ class LecturerDashboardController extends Controller
 
         $tanggalHariIni = Carbon::today();
 
-        // ============================================================
-        // BAGIAN 1: KARTU RINGKASAN STATISTIK
-        // ============================================================
 
-        // 1a. Total Mata Kuliah
         $totalCourses = Course::where('lecturer_id', $lecturerId)
             ->count();
 
-        // 1b. Total Mahasiswa Unik
         $totalStudents = Course::where('lecturer_id', $lecturerId)
             ->with('students')
             ->get()
@@ -40,7 +35,6 @@ class LecturerDashboardController extends Controller
             ->unique('id')
             ->count();
 
-        // 1c. Rata-rata Kehadiran Minggu Ini (TETAP SAMA)
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 
@@ -58,9 +52,6 @@ class LecturerDashboardController extends Controller
         $averageAttendance = $totalRecords > 0 ? ($totalPresent / $totalRecords) * 100 : 0;
 
 
-        // ============================================================
-        // BAGIAN 2: JADWAL MENGAJAR HARI INI (TETAP SAMA)
-        // ============================================================
         $todaysSessions = AttendanceSession::with(['course', 'location'])
             ->whereHas('course', function ($query) use ($lecturerId) {
                 $query->where('lecturer_id', $lecturerId);
@@ -75,7 +66,6 @@ class LecturerDashboardController extends Controller
                 $startTimeOnly = Carbon::parse($session->start_time)->format('H:i:s');
                 $endTimeOnly = Carbon::parse($session->end_time)->format('H:i:s');
 
-                // Gabungkan dengan tanggal sesi untuk mendapatkan datetime yang akurat
                 $startTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $startTimeOnly);
                 $endTime = Carbon::parse($session->session_date->format('Y-m-d') . ' ' . $endTimeOnly);
             } catch (\Exception $e) {
@@ -83,29 +73,23 @@ class LecturerDashboardController extends Controller
                 continue;
             }
 
-            // Logika status waktu (Tetap Sama)
             if ($now > $endTime) {
-                $session->time_status = 'finished'; // Selesai
+                $session->time_status = 'finished';
             } elseif ($now >= $startTime && $now <= $endTime) {
-                $session->time_status = 'ongoing'; // Sedang berlangsung
+                $session->time_status = 'ongoing';
             } else {
-                $session->time_status = 'upcoming'; // Akan datang
+                $session->time_status = 'upcoming';
             }
         }
 
 
-        // ============================================================
-        // BAGIAN 3: STATUS PER MATA KULIAH
-        // ============================================================
 
-        // Ambil SEMUA mata kuliah yang diajar dosen ini
         $taughtCourses = Course::where('lecturer_id', $lecturerId)
             ->get();
 
         $courseAttendanceStatus = [];
 
         foreach ($taughtCourses as $course) {
-            // 3a. Hitung Persentase (TETAP SAMA)
             $totalPresentCourse = AttendanceRecord::whereHas('session', function ($query) use ($course) {
                 $query->where('course_id', $course->id);
             })->where('status', 'present')->count();
@@ -116,14 +100,12 @@ class LecturerDashboardController extends Controller
 
             $percentageCourse = $totalRecordsCourse > 0 ? ($totalPresentCourse / $totalRecordsCourse) * 100 : 0;
 
-            // 3b. Cari Sesi Terakhir (TETAP SAMA)
             $lastSession = AttendanceSession::where('course_id', $course->id)
                 ->where('session_date', '<=', Carbon::now())
                 ->orderBy('session_date', 'desc')
                 ->orderBy('start_time', 'desc')
                 ->first();
 
-            // 3c. Hitung Nomor Sesi (TETAP SAMA)
             $sessionCount = AttendanceSession::where('course_id', $course->id)
                 ->where('session_date', '<=', Carbon::now())
                 ->count();
@@ -136,7 +118,6 @@ class LecturerDashboardController extends Controller
             ];
         }
 
-        // --- KIRIM KE VIEW ---
         return view('lecturer.dashboard', compact(
             'totalCourses',
             'totalStudents',

@@ -125,6 +125,11 @@
                         <input type="text" name="npm" id="npm" value="{{ old('npm') }}" :required="role === 'student'" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
                         @error('npm') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label for="class_name" class="block text-sm font-medium text-gray-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+                        <input type="text" name="class_name" id="class_name" value="{{ old('class_name') }}" :required="role === 'student'" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 3KA15">
+                        @error('class_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                      <div>
                         {{-- Perhatikan nama input phone_number sama, nanti di controller yang menangani --}}
                         <label for="phone_number_student" class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>

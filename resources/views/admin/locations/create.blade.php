@@ -75,6 +75,22 @@
             {{-- DIV UNTUK PETA --}}
             <div id="map"></div>
 
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                <button type="button" id="use-current-location"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.866-4 6-4 6s-4-2.134-4-6a8 8 0 1116 0c0 3.866-4 6-4 6s-4-2.134-4-6z"/>
+                        <circle cx="12" cy="11" r="3" stroke-width="2"/>
+                    </svg>
+                    Gunakan Lokasi Saat Ini
+                </button>
+                <p class="text-xs text-gray-500">
+                    Klik untuk mengambil koordinat GPS perangkat lalu sesuaikan pin di peta jika perlu.
+                </p>
+            </div>
+            <p class="text-xs text-gray-500 mb-1" id="current-location-status"></p>
+            <p class="text-xs text-gray-500 mb-4">Tips: Anda juga bisa klik langsung pada peta untuk mengatur titik lokasi secara manual.</p>
+
             <h3 class="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4 pt-4">Konfigurasi Geofence</h3>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -128,7 +144,7 @@
         // Inisialisasi Peta
         var map = L.map('map').setView([initialLat, initialLon], 15);
 
-        // Tile layer (peta dasar) dari OpenStreetMap
+        // Lapisan peta (peta dasar) dari OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
@@ -140,7 +156,7 @@
             title: 'Drag untuk memindahkan lokasi'
         }).addTo(map);
 
-        // Circle untuk menampilkan radius
+        // Lingkaran untuk menampilkan radius
         var circle = L.circle([initialLat, initialLon], {
             radius: initialRadius,
             color: '#3b82f6',
@@ -148,14 +164,28 @@
             fillOpacity: 0.2
         }).addTo(map);
 
+        function syncLocation(lat, lng, setView = false) {
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+            marker.setLatLng([lat, lng]);
+            circle.setLatLng([lat, lng]);
+            if (setView) {
+                map.setView([lat, lng], 17);
+            }
+        }
+
         // Update input latitude dan longitude saat marker dipindah
         marker.on('dragend', function(e) {
             var latlng = marker.getLatLng();
-            document.getElementById('latitude').value = latlng.lat.toFixed(6);
-            document.getElementById('longitude').value = latlng.lng.toFixed(6);
+            syncLocation(latlng.lat, latlng.lng);
+        });
 
-            // Pindahkan lingkaran juga
-            circle.setLatLng(latlng);
+        // Klik peta untuk set titik lokasi manual
+        map.on('click', function(e) {
+            syncLocation(e.latlng.lat, e.latlng.lng, false);
+            if (statusEl) {
+                statusEl.textContent = `Lokasi diset manual: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+            }
         });
 
         // Update lingkaran radius saat input radius_meters berubah
@@ -166,9 +196,71 @@
             }
         });
 
-        // Set initial values for inputs
+        // Set nilai awal untuk input
         document.getElementById('latitude').value = initialLat.toFixed(6);
         document.getElementById('longitude').value = initialLon.toFixed(6);
+
+        const useCurrentBtn = document.getElementById('use-current-location');
+        const statusEl = document.getElementById('current-location-status');
+        if (useCurrentBtn) {
+            useCurrentBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    alert('Perangkat tidak mendukung geolokasi.');
+                    return;
+                }
+
+                useCurrentBtn.disabled = true;
+                const originalText = useCurrentBtn.innerHTML;
+                useCurrentBtn.innerHTML = 'Mengambil lokasi...';
+                if (statusEl) {
+                    statusEl.textContent = 'Mengambil lokasi GPS...';
+                }
+
+                let watchId = null;
+                const stopWatch = () => {
+                    if (watchId !== null) {
+                        navigator.geolocation.clearWatch(watchId);
+                        watchId = null;
+                    }
+                };
+
+                const onSuccess = function(pos) {
+                    const accuracy = Math.round(pos.coords.accuracy || 0);
+                    syncLocation(pos.coords.latitude, pos.coords.longitude, true);
+                    if (statusEl) {
+                        statusEl.textContent = `Lokasi ditemukan (akurasi ±${accuracy}m).`;
+                    }
+
+                    if (accuracy <= 50) {
+                        stopWatch();
+                        useCurrentBtn.disabled = false;
+                        useCurrentBtn.innerHTML = originalText;
+                    }
+                };
+
+                const onError = function() {
+                    stopWatch();
+                    alert('Gagal mengambil lokasi. Pastikan izin GPS aktif.');
+                    if (statusEl) {
+                        statusEl.textContent = 'Gagal mengambil lokasi. Periksa izin GPS.';
+                    }
+                    useCurrentBtn.disabled = false;
+                    useCurrentBtn.innerHTML = originalText;
+                };
+
+                navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                });
+
+                watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                });
+            });
+        }
 
         // Invalidate size setelah render untuk memastikan peta tampil dengan benar
         setTimeout(function() {

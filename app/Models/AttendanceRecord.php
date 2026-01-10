@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\StudentProfile;
 
 class AttendanceRecord extends Model
 {
@@ -14,28 +15,32 @@ class AttendanceRecord extends Model
         'session_id',
         'student_id',
         'submission_time',
-        'photo_path', // URL Cloudinary
-        'location_maps', // Lat,Long string
-        'status', // 'present', 'late', dll.
-        'learning_type', // 'online' atau 'onsite'
+        'photo_path',
+        'supporting_document_path',
+        'location_maps',
+        'status',
+        'learning_type',
     ];
 
-    // Casts penting
     protected $casts = [
-        'submission_time' => 'datetime', // Casting agar bisa menggunakan format() di Exporter
+        'submission_time' => 'datetime',
     ];
 
-    // Relasi ke Sesi (Belongs-to)
-    public function session(): BelongsTo // Tambahkan type hint
+    // Relasi ke sesi presensi.
+    public function session(): BelongsTo
     {
-        // Parameter kedua harus sesuai nama kolom FK di database
         return $this->belongsTo(AttendanceSession::class, 'session_id');
     }
 
-    // Relasi ke Mahasiswa (Belongs-to)
+    // Relasi ke user (mahasiswa).
     public function user(): BelongsTo
     {
-        // Menggunakan student_id sebagai FK dan merujuk ke StudentProfile
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    // Relasi ke profil mahasiswa.
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(StudentProfile::class, 'student_id');
     }
 }

@@ -12,59 +12,55 @@ use App\Models\Location;
 
 class CourseController extends Controller
 {
+    // Menampilkan daftar mata kuliah.
     public function index()
     {
         $courses = Course::with('lecturer')->latest()->paginate(10);
         return view('admin.courses.index', compact('courses'));
     }
 
+    // Menampilkan form tambah mata kuliah.
     public function create()
     {
-        // Ambil user dengan role 'lecturer'
         $lecturers = User::where('role', 'lecturer')->orderBy('name')->get();
         return view('admin.courses.create', compact('lecturers'));
     }
 
+    // Menyimpan mata kuliah baru.
     public function store(CourseStoreRequest $request)
     {
-        // Data sudah divalidasi otomatis oleh Form Request
         $validated = $request->validated();
-
-        // Simpan data ke database
         Course::create($validated);
-
-        // Redirect dengan flash message 'success' agar toast muncul
         return redirect()->route('admin.courses.index')
             ->with('success', 'Mata kuliah baru berhasil ditambahkan.');
     }
 
+    // Menampilkan form edit mata kuliah.
     public function edit(Course $course)
     {
-        // Sama seperti create, kita butuh daftar dosen untuk dropdown edit
         $lecturers = User::where('role', 'lecturer')->orderBy('name')->get();
         return view('admin.courses.edit', compact('course', 'lecturers'));
     }
 
+    // Memperbarui data mata kuliah.
     public function update(CourseUpdateRequest $request, Course $course)
     {
-        // Data sudah divalidasi
         $validated = $request->validated();
-
-        // Update data di database
         $course->update($validated);
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Data mata kuliah berhasil diperbarui.');
     }
 
+    // Menghapus mata kuliah.
     public function destroy(Course $course)
     {
         $course->delete();
-        // Gunakan flash message 'success' agar toast notification muncul
         return redirect()->route('admin.courses.index')
             ->with('success', 'Mata kuliah berhasil dihapus.');
     }
 
+    // Menampilkan daftar mata kuliah dosen.
     public function lecturerIndex()
     {
         $lecturer = Auth::user();
@@ -87,14 +83,11 @@ class CourseController extends Controller
         return view('lecturer.courses.index', compact('courses', 'statistics'));
     }
 
-    /**
-     * Detail kelas untuk dosen
-     */
+    // Menampilkan detail mata kuliah untuk dosen.
     public function lecturerShow(Course $course)
     {
         $lecturer = Auth::user();
 
-        // Pastikan hanya dosen pemilik kelas yang bisa akses
         if ($course->lecturer_id !== $lecturer->id) {
             abort(403, 'Unauthorized');
         }
@@ -113,6 +106,7 @@ class CourseController extends Controller
         return view('lecturer.courses.show', compact('course', 'stats'));
     }
 
+    // Menampilkan form tambah mata kuliah (dosen).
     public function lecturerCreate()
     {
         $lecturer = Auth::user();
@@ -127,9 +121,7 @@ class CourseController extends Controller
         return view('lecturer.courses.create', compact('availableCourses', 'locations')); 
     }
 
-    /**
-     * Assign/Simpan course ke dosen
-     */
+    // Menyimpan mata kuliah (dosen).
     public function lecturerStore(Request $request)
     {
         $validated = $request->validate([
@@ -142,21 +134,19 @@ class CourseController extends Controller
         $lecturer = Auth::user();
         $course = Course::findOrFail($validated['course_id']);
 
-        // Cek apakah course sudah di-assign ke dosen lain
         if ($course->lecturer_id !== null && $course->lecturer_id !== $lecturer->id) {
             return back()->with('error', 'Mata kuliah ini sudah di-assign ke dosen lain');
         }
 
-        // Assign course ke dosen
         $course->update(['lecturer_id' => $lecturer->id]);
 
         return redirect()->route('lecturer.classes.index')
             ->with('success', 'Kelas ' . $course->course_name . ' berhasil ditambahkan');
     }
 
+    // Menampilkan form edit mata kuliah (dosen).
     public function lecturerEdit(Course $course)
     {
-        // Pastikan hanya dosen pemilik kelas yang bisa edit
         if ($course->lecturer_id !== Auth::user()->id) {
             abort(403, 'Unauthorized');
         }
@@ -164,9 +154,9 @@ class CourseController extends Controller
         return view('lecturer.courses.edit', compact('course'));
     }
 
+    // Memperbarui mata kuliah (dosen).
     public function lecturerUpdate(Request $request, Course $course)
     {
-        // Pastikan hanya dosen pemilik kelas yang bisa update
         if ($course->lecturer_id !== Auth::user()->id) {
             abort(403, 'Unauthorized');
         }
@@ -185,14 +175,13 @@ class CourseController extends Controller
             ->with('success', 'Kelas berhasil diperbarui');
     }
 
+    // Menghapus mata kuliah (dosen).
     public function lecturerDestroy(Course $course)
     {
-        // Pastikan hanya dosen pemilik kelas yang bisa hapus
         if ($course->lecturer_id !== Auth::user()->id) {
             abort(403, 'Unauthorized');
         }
 
-        // Cek apakah ada sesi/attendance records
         if ($course->sessions()->exists()) {
             return back()->with('error', 'Tidak bisa menghapus kelas yang sudah memiliki sesi');
         }

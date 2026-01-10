@@ -115,7 +115,7 @@
         // Inisialisasi Peta
         var map = L.map('map').setView([initialLat, initialLon], 17); // Zoom lebih dekat untuk edit
 
-        // Tile layer
+        // Lapisan peta
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19

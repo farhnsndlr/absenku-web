@@ -8,71 +8,127 @@ use Carbon\Carbon;
 use App\Models\StudentProfile;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class StudentDashboardController extends Controller
 {
+    // Menyiapkan data untuk dashboard mahasiswa.
     public function index()
     {
         $user = Auth::user();
 
-        // 0. Pastikan user adalah mahasiswa
         if ($user->role !== 'student') {
              abort(403, 'Akses ditolak. Halaman ini hanya untuk mahasiswa.');
         }
 
-        // Ambil profile mahasiswa via relasi di model User
-        // Asumsi di model User ada method: public function studentProfile() { return $this->hasOne(StudentProfile::class); }
         $studentProfile = $user->studentProfile;
 
         if (!$studentProfile) {
-            // Idealnya redirect ke halaman lengkapi profil, tapi abort dulu untuk sekarang
             abort(403, 'Profil mahasiswa tidak ditemukan. Silakan hubungi admin.');
         }
 
-        // --- PERBAIKAN KRUSIAL DI SINI ---
-        // Gunakan ID dari StudentProfile, BUKAN ID dari User
         $studentProfileId = $studentProfile->id;
 
-        $todayStr = Carbon::today()->toDateString(); // Format Y-m-d
+        $todayStr = Carbon::today()->toDateString();
+        $now = Carbon::now();
+        $joinedAt = $user->created_at ?? $now;
+        $hasEnrollments = $studentProfile->courses()->exists();
+        $enrolledCourseIds = $hasEnrollments ? $studentProfile->courses()->pluck('courses.id') : collect();
+        $studentClassNames = $hasEnrollments
+            ? $studentProfile->courses()
+                ->pluck('course_enrollments.class_name')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all()
+            : array_values(array_filter([trim((string) ($studentProfile->class_name ?? ''))]));
 
-        // --- 1. DATA STATISTIK KEHADIRAN (Dioptimalkan menjadi 1 Query) ---
-        // KODE LAMA YANG TIDAK EFISIEN (N+1 Query):
-        // $attendanceQuery = AttendanceRecord::where('student_id', $studentId);
-        // 'present' => (clone $attendanceQuery)->where('status', 'present')->count(), ... dll
+        $recordsForStats = AttendanceRecord::with('session')
+            ->where('student_id', $studentProfileId)
+            ->get();
 
-        // KODE BARU (OPTIMAL): Menggunakan conditional aggregation
-        $rawStats = AttendanceRecord::where('student_id', $studentProfileId)
-            ->selectRaw('
-                sum(status = "present") as present,
-                sum(status = "late") as late,
-                sum(status IN ("permit", "sick")) as permit,
-                sum(status = "absent") as absent
-            ')
-            ->first();
+        $presentCount = 0;
+        $lateCount = 0;
+        $permitCount = 0;
+        $absentCount = 0;
 
-        // Format hasil agar aman jika null (belum ada record sama sekali)
-        // Menggunakan null coalescing operator (?? 0)
+        foreach ($recordsForStats as $record) {
+            $status = $record->status;
+
+            if (in_array($status, ['permit', 'sick'], true)) {
+                $permitCount++;
+                continue;
+            }
+
+            if ($status === 'absent') {
+                $absentCount++;
+                continue;
+            }
+
+            $session = $record->session;
+            if (!$session || !$record->submission_time) {
+                if ($status === 'present') {
+                    $presentCount++;
+                } elseif ($status === 'late') {
+                    $lateCount++;
+                }
+                continue;
+            }
+
+            $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+            $lateThreshold = $session->end_date_time->copy()->addMinutes($tolerance);
+
+            if ($record->submission_time->lte($session->end_date_time)) {
+                $presentCount++;
+            } elseif ($record->submission_time->lte($lateThreshold)) {
+                $lateCount++;
+            } else {
+                $lateCount++;
+            }
+        }
+
+        $absentMissing = 0;
+        if ($hasEnrollments) {
+            $absentMissing = AttendanceSession::leftJoin('attendance_records', function ($join) use ($studentProfileId) {
+                $join->on('attendance_sessions.id', '=', 'attendance_records.session_id')
+                    ->where('attendance_records.student_id', $studentProfileId);
+            })
+                ->whereIn('attendance_sessions.course_id', $enrolledCourseIds)
+                ->when(!empty($studentClassNames), function ($query) use ($studentClassNames) {
+                    $query->whereIn('attendance_sessions.class_name', $studentClassNames);
+                }, function ($query) {
+                    $query->whereNull('attendance_sessions.id');
+                })
+                ->whereDate('attendance_sessions.session_date', '>=', $joinedAt->toDateString())
+                ->whereRaw(
+                    'date_add(timestamp(attendance_sessions.session_date, time(attendance_sessions.end_time)), interval ifnull(attendance_sessions.late_tolerance_minutes, 10) minute) < ?',
+                    [$now->toDateTimeString()]
+                )
+                ->whereNull('attendance_records.id')
+                ->count();
+        }
+
         $stats = [
-            'present' => $rawStats->present ?? 0,
-            'late'    => $rawStats->late ?? 0,
-            'permit'  => $rawStats->permit ?? 0,
-            'absent'  => $rawStats->absent ?? 0,
-            // Total kehadiran (hadir + terlambat)
-            'total_attendance' => ($rawStats->present ?? 0) + ($rawStats->late ?? 0),
+            'present' => $presentCount,
+            'late' => $lateCount,
+            'permit' => $permitCount,
+            'absent' => $absentCount + $absentMissing,
+            'total_attendance' => $presentCount + $lateCount,
         ];
 
 
-        // --- 2. JADWAL KULIAH HARI INI ---
-        // a. Ambil ID mata kuliah yang diambil mahasiswa (dari object profile)
-        $enrolledCourseIds = $studentProfile->courses()->pluck('courses.id');
-
-        // b. Cari SESI yang aktif hari ini sebagai proxy jadwal.
-        $todaysSchedule = AttendanceSession::whereIn('course_id', $enrolledCourseIds)
-            ->whereDate('session_date', $todayStr) // Gunakan whereDate agar lebih aman
+        $todaysSchedule = AttendanceSession::when($hasEnrollments, function ($query) use ($enrolledCourseIds) {
+                $query->whereIn('course_id', $enrolledCourseIds);
+            })
+            ->when(!empty($studentClassNames), function ($query) use ($studentClassNames) {
+                $query->whereIn('class_name', $studentClassNames);
+            }, function ($query) {
+                $query->whereNull('id');
+            })
+            ->whereDate('session_date', $todayStr)
             ->with([
-                'course.lecturer.profile', // Load profile dosen agar dapat nama lengkap
+                'course.lecturer.profile',
                 'location',
-                // Eager load record absensi HANYA untuk mahasiswa ini menggunakan ID Profile yg benar
                 'records' => function ($q) use ($studentProfileId) {
                     $q->where('student_id', $studentProfileId);
                 }
@@ -81,16 +137,98 @@ class StudentDashboardController extends Controller
             ->get();
 
 
-        // --- 3. RIWAYAT ABSENSI TERAKHIR (5 Data) ---
-        $recentHistory = AttendanceRecord::where('student_id', $studentProfileId) // Gunakan ID Profile
-            ->with(['session.course']) // Load data sesi dan mata kuliahnya
+        $recentHistory = AttendanceRecord::where('student_id', $studentProfileId)
+            ->with(['session.course'])
             ->orderBy('submission_time', 'desc')
-            ->take(5) // Ambil 5 saja
+            ->take(25)
             ->get();
 
+        $recentAbsentSessions = collect();
+        if ($hasEnrollments) {
+            $recentAbsentSessions = AttendanceSession::with('course')
+                ->whereIn('course_id', $enrolledCourseIds)
+                ->when(!empty($studentClassNames), function ($query) use ($studentClassNames) {
+                    $query->whereIn('class_name', $studentClassNames);
+                }, function ($query) {
+                    $query->whereNull('id');
+                })
+                ->whereDate('session_date', '<=', $todayStr)
+                ->whereDate('session_date', '>=', $joinedAt->toDateString())
+                ->whereDoesntHave('records', function ($query) use ($studentProfileId) {
+                    $query->where('student_id', $studentProfileId);
+                })
+                ->get()
+                ->filter(function ($session) use ($now) {
+                    $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+                    $lateDeadline = $session->end_date_time->copy()->addMinutes($tolerance);
+                    return $lateDeadline->lt($now);
+                })
+                ->map(function ($session) use ($now, $studentProfileId) {
+                    $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+                    $lateDeadline = $session->end_date_time->copy()->addMinutes($tolerance);
 
-        // Kirim semua data ke view
-        // Variable $user tidak perlu dikirim via compact karena sudah bisa diakses via auth()->user() di blade
-        return view('student.dashboard', compact('stats', 'todaysSchedule', 'recentHistory'));
+                    $record = new AttendanceRecord([
+                        'session_id' => $session->id,
+                        'student_id' => $studentProfileId,
+                        'status' => 'absent',
+                        'submission_time' => $lateDeadline,
+                    ]);
+                    $record->setRelation('session', $session);
+                    $record->computed_status = 'absent';
+                    return $record;
+                });
+        }
+
+        $recentHistory = $recentHistory
+            ->merge($recentAbsentSessions)
+            ->sortByDesc(function ($record) {
+                return $record->submission_time;
+            })
+            ->values();
+
+        $recentHistory->each(function ($record) {
+            $status = $record->status;
+
+            if (in_array($status, ['permit', 'sick', 'absent'], true)) {
+                $record->computed_status = $status;
+                return;
+            }
+
+            if (!$record->session || !$record->submission_time) {
+                $record->computed_status = $status;
+                return;
+            }
+
+            $tolerance = max(0, (int) ($record->session->late_tolerance_minutes ?? 10));
+            $lateThreshold = $record->session->end_date_time->copy()->addMinutes($tolerance);
+
+            if ($record->submission_time->lte($record->session->end_date_time)) {
+                $record->computed_status = 'present';
+            } elseif ($record->submission_time->lte($lateThreshold)) {
+                $record->computed_status = 'late';
+            } else {
+                $record->computed_status = 'late';
+            }
+        });
+
+
+        $recentHistoryPage = max(1, (int) request()->query('recent_history_page', 1));
+        $recentHistoryPaginator = new LengthAwarePaginator(
+            $recentHistory->forPage($recentHistoryPage, 5)->values(),
+            $recentHistory->count(),
+            5,
+            $recentHistoryPage,
+            [
+                'path' => request()->url(),
+                'pageName' => 'recent_history_page',
+                'query' => request()->query(),
+            ]
+        );
+
+        return view('student.dashboard', [
+            'stats' => $stats,
+            'todaysSchedule' => $todaysSchedule,
+            'recentHistory' => $recentHistoryPaginator,
+        ]);
     }
 }

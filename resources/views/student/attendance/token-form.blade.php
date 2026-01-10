@@ -1,4 +1,8 @@
-@extends('layouts.dashboard') {{-- Asumsi menggunakan layout utama yang sama --}}
+@extends('layouts.dashboard')
+
+@section('navigation')
+    @include('student.partials.navigation')
+@endsection
 
 @section('title', 'Input Token Presensi')
 @section('page-title', 'Presensi Menggunakan Token')

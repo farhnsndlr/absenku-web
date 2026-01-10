@@ -3,6 +3,12 @@
 @section('title', 'Edit Profil')
 @section('page-title', 'Edit Profil')
 
+@if($dashboardView === 'layouts.dashboard')
+@section('navigation')
+    @include('student.partials.navigation')
+@endsection
+@endif
+
 @section('content')
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <h2 class="text-xl font-bold text-gray-900 mb-6">Informasi Pribadi</h2>
@@ -83,6 +89,11 @@
                     <label for="npm" class="block text-sm font-medium text-gray-700 mb-1">NPM (Nomor Pokok Mahasiswa)</label>
                     <input type="text" name="npm" id="npm" value="{{ old('npm', $user->profile->npm ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4">
                     @error('npm') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="class_name" class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                    <input type="text" name="class_name" id="class_name" value="{{ old('class_name', $user->profile->class_name ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 3KA15">
+                    @error('class_name') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
             @endif
 

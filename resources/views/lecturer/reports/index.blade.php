@@ -123,6 +123,9 @@
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                             {{ $session->class_name }}
                         </span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            Kode: {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}
+                        </div>
                     </td>
 
                     {{-- Tipe & Lokasi (Digabung agar lebih rapi) --}}

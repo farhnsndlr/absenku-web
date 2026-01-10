@@ -23,6 +23,7 @@
                         <th class="px-6 py-3">Nama Kelas</th>
                         <th class="px-6 py-3">Tipe & Lokasi</th>
                         <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Token Presensi</th>
                         <th class="px-6 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -55,6 +56,9 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                                     {{ $session->class_name }}
                                 </span>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Kode: {{ 'S-' . str_pad($session->id, 5, '0', STR_PAD_LEFT) }}
+                                </div>
                             </td>
                             {{-- Tipe & Lokasi (Sudah diperbaiki menggunakan learning_type) --}}
                             <td class="px-6 py-4">
@@ -116,6 +120,16 @@
                                     </span>
                                 @endif
                             </td>
+                            {{-- Token Presensi --}}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($session->session_token)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold tracking-[0.3em] font-mono bg-blue-50 text-blue-700 border border-blue-100">
+                                        {{ $session->session_token }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
+                                @endif
+                            </td>
                             {{-- Aksi --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <a href="{{ route('lecturer.sessions.show', $session->id) }}" class="text-blue-600 hover:text-blue-900 font-semibold hover:underline">
@@ -125,7 +139,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500 bg-gray-50/50"> {{-- Colspan jadi 6 --}}
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <p class="text-base font-medium text-gray-900">Belum ada sesi kelas.</p>

@@ -16,11 +16,13 @@ class CourseEnrollment extends Model
         'student_profile_id',
     ];
 
+    // Relasi ke mata kuliah.
     public function course()
     {
         return $this->belongsTo(Course::class, 'course_id');
     }
 
+    // Relasi ke profil mahasiswa.
     public function studentProfile()
     {
         return $this->belongsTo(StudentProfile::class, 'student_profile_id');

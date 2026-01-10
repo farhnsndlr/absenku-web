@@ -6,7 +6,7 @@
 <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8"
     x-data="{
        selectedCourseId: '{{ old('course_id') }}',
-       sessionType: '{{ old('session_type', 'offline') }}',
+       sessionType: '{{ old('learning_type', 'offline') }}',
        // Data default mata kuliah dari controller
        coursesDefaults: {{ json_encode($coursesDefaults) }},
        updateDefaults() {
@@ -15,7 +15,7 @@
                // Hanya isi jika tidak ada input lama (old) agar tidak menimpa input user saat validasi gagal
                if (!'{{ old('start_time') }}') document.getElementById('start_time').value = defaults.start_time;
                if (!'{{ old('end_time') }}') document.getElementById('end_time').value = defaults.end_time;
-               if (!'{{ old('session_type') }}') this.sessionType = defaults.session_type;
+               if (!'{{ old('learning_type') }}') this.sessionType = defaults.learning_type;
                // Pastikan elemen location_id ada sebelum set value (karena bisa tersembunyi)
                const locEl = document.getElementById('location_id');
                if (locEl && !'{{ old('location_id') }}') locEl.value = defaults.location_id;
@@ -120,15 +120,15 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Sesi <span class="text-red-500">*</span></label>
                 <div class="flex items-center gap-6 mt-2 p-1">
                     <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="session_type" value="offline" x-model="sessionType" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="learning_type" value="offline" x-model="sessionType" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-gray-900">Offline (Tatap Muka)</span>
                     </label>
                     <label class="flex items-center cursor-pointer">
-                        <input type="radio" name="session_type" value="online" x-model="sessionType" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <input type="radio" name="learning_type" value="online" x-model="sessionType" class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
                         <span class="ml-2 text-gray-900">Online (Daring)</span>
                     </label>
                 </div>
-                @error('session_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                @error('learning_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Pilihan Lokasi (Hanya muncul jika Offline) --}}

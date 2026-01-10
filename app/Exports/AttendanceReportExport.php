@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize; // Agar kolom otomatis menyesuaikan lebar
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Carbon\Carbon;
@@ -17,28 +17,22 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
 {
     protected $filters;
 
+    // Menangani aksi __construct.
     public function __construct($filters)
     {
         $this->filters = $filters;
     }
 
-    /**
-     * Mengambil data yang sudah difilter dan di-eager load.
-     * Jauh lebih efisien dari kode sebelumnya.
-     */
+    // Menyusun data untuk export.
     public function collection()
     {
-        // Mulai query dari AttendanceRecord, bukan AttendanceSession
         $query = AttendanceRecord::query();
 
-        // --- Terapkan Filter ---
 
-        // Filter berdasarkan ID Sesi spesifik
         if (!empty($this->filters['session_id'])) {
             $query->where('session_id', $this->filters['session_id']);
         }
 
-        // Filter berdasarkan tanggal sesi
         if (!empty($this->filters['start_date'])) {
             $query->whereHas('session', function ($q) {
                 $q->where('session_date', '>=', $this->filters['start_date']);
@@ -50,51 +44,40 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
             });
         }
 
-        // Filter berdasarkan mata kuliah
         if (!empty($this->filters['course_id'])) {
             $query->whereHas('session', function ($q) {
                 $q->where('course_id', $this->filters['course_id']);
             });
         }
 
-        // Filter berdasarkan nama kelas
         if (!empty($this->filters['class_name'])) {
             $query->whereHas('session', function ($q) {
                 $q->where('class_name', $this->filters['class_name']);
             });
         }
 
-        // Filter berdasarkan tipe sesi (online/offline)
-        // PERBAIKAN: Gunakan 'session_type' sesuai konsistensi
         if (!empty($this->filters['session_type'])) {
             $query->whereHas('session', function ($q) {
                 $q->where('session_type', $this->filters['session_type']);
             });
         }
 
-        // Filter berdasarkan status kehadiran
         if (!empty($this->filters['status'])) {
             $query->where('status', $this->filters['status']);
         }
 
-        // Filter agar hanya menampilkan data dari mata kuliah dosen yang login
-        // PENTING: Ini harus selalu ada untuk keamanan
         if (!empty($this->filters['lecturer_id'])) {
             $query->whereHas('session.course', function ($q) {
                 $q->where('lecturer_id', $this->filters['lecturer_id']);
             });
         }
 
-        // --- Eager Loading (Mengatasi N+1 Query) ---
-        // PENTING: Muat semua relasi yang dibutuhkan di sini.
         $query->with([
-            'session.course',   // Untuk data MK
-            'session.location', // Untuk data lokasi
+            'session.course',
+            'session.location',
             'user'
         ]);
 
-        // --- Sorting ---
-        // Urutkan berdasarkan tanggal sesi (desc) dan nama mahasiswa (asc)
         $query->orderBy(
             \App\Models\AttendanceSession::select('session_date')
                 ->whereColumn('attendance_sessions.id', 'attendance_records.session_id'),
@@ -105,18 +88,18 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
             'asc'
         );
 
-        // Eksekusi query dan kembalikan koleksi data
         return $query->get();
     }
 
+    // Menentukan judul kolom export.
     public function headings(): array
     {
         return [
             'Tanggal Sesi',
-            'Jam Sesi', // Digabung jadi satu kolom
+            'Jam Sesi',
             'Mata Kuliah',
             'Kode MK',
-            'Nama Kelas', // Kolom Baru
+            'Nama Kelas',
             'Tipe Sesi',
             'Lokasi Kampus',
             'NPM Mahasiswa',
@@ -127,55 +110,48 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
         ];
     }
 
-    /**
-     * Memetakan setiap record menjadi baris di Excel.
-     * $record adalah satu objek AttendanceRecord beserta relasinya yang sudah dimuat.
-     */
+    // Memetakan data untuk baris export.
     public function map($record): array
     {
-        // $record adalah instance AttendanceRecord
-        // $record->session adalah instance AttendanceSession
-        // $record->student adalah instance User (Mahasiswa)
 
-        // Pastikan casting tanggal di model Anda sudah benar
         $sessionDate = $record->session->session_date instanceof Carbon ? $record->session->session_date->format('d-m-Y') : $record->session->session_date;
         $startTime = $record->session->start_time instanceof Carbon ? $record->session->start_time->format('H:i') : $record->session->start_time;
         $endTime = $record->session->end_time instanceof Carbon ? $record->session->end_time->format('H:i') : $record->session->end_time;
         $submissionTime = $record->submission_time instanceof Carbon ? $record->submission_time->format('H:i:s') : ($record->submission_time ?? '-');
 
-        // Asumsi: NPM ada di tabel users atau kita pakai ID sebagai fallback jika belum ada kolom NPM
         $npm = $record->user?->npm ?? $record->user?->id ?? '-';
 
         return [
             $sessionDate,
-            $startTime . ' - ' . $endTime, // Gabung jam mulai dan selesai
+            $startTime . ' - ' . $endTime,
             $record->session->course->course_name ?? '-',
             $record->session->course->course_code ?? '-',
-            $record->session->class_name ?? '-', // Nama Kelas
-            ucfirst($record->session->session_type), // Tipe Sesi (Online/Offline)
+            $record->session->class_name ?? '-',
+            ucfirst($record->session->session_type),
             $record->session->location->location_name ?? ($record->session->session_type == 'online' ? 'Online (Daring)' : '-'),
             $npm,
-            $record->user?->name ?? '-', // Nama dari tabel users
+            $record->user?->name ?? '-',
             $this->formatStatus($record->status),
             $submissionTime,
-            ucfirst($record->learning_type), // Mode Absen (Onsite/Remote)
+            ucfirst($record->learning_type),
         ];
     }
 
+    // Menentukan styling untuk export.
     public function styles(Worksheet $sheet)
     {
         return [
-            // Style untuk header (baris 1)
             1 => [
                 'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
                     'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4F46E5'] // Warna biru header
+                    'startColor' => ['rgb' => '4F46E5']
                 ],
             ],
         ];
     }
 
+    // Menangani aksi title.
     public function title(): string
     {
         return 'Laporan Kehadiran';

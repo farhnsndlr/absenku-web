@@ -12,6 +12,7 @@ use App\Models\StudentProfile;
 
 class StudentAttendanceController extends Controller
 {
+    // Menampilkan daftar sesi presensi hari ini untuk mahasiswa.
     public function index()
     {
         $user = Auth::user();
@@ -20,12 +21,32 @@ class StudentAttendanceController extends Controller
         $now = Carbon::now();
         $today = $now->toDateString();
 
-        // Ambil course yg diambil mahasiswa
-        $enrolledCourseIds = $student->courses()->pluck('courses.id')->toArray();
+        $hasEnrollments = $student->courses()->exists();
+        $enrolledCourseIds = $hasEnrollments ? $student->courses()->pluck('courses.id')->toArray() : [];
+        $studentClassNames = $hasEnrollments
+            ? $student->courses()
+                ->pluck('course_enrollments.class_name')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all()
+            : array_values(array_filter([trim((string) ($student->class_name ?? ''))]));
 
-        // Ambil sesi khusus mata kuliah mahasiswa saja
-        $sessions = AttendanceSession::with(['course', 'location'])
-            ->whereIn('course_id', $enrolledCourseIds)
+        $sessions = AttendanceSession::with([
+            'course',
+            'location',
+            'records' => function ($query) use ($student) {
+                $query->where('student_id', $student->id);
+            }
+        ])
+            ->when($hasEnrollments, function ($query) use ($enrolledCourseIds) {
+                $query->whereIn('course_id', $enrolledCourseIds);
+            })
+            ->when(!empty($studentClassNames), function ($query) use ($studentClassNames) {
+                $query->whereIn('class_name', $studentClassNames);
+            }, function ($query) {
+                $query->whereNull('id');
+            })
             ->whereDate('session_date', $today)
             ->select([
                 'id',
@@ -35,18 +56,23 @@ class StudentAttendanceController extends Controller
                 'end_time',
                 'learning_type',
                 'location_id',
+                'session_token',
+                'class_name',
+                'late_tolerance_minutes',
             ])
-            ->get();
+            ->orderBy('start_time', 'asc')
+            ->paginate(5);
 
-        // Hitung waktu dan status
-        $activeSessions = $sessions->map(function ($session) use ($now) {
+        $sessions->getCollection()->transform(function ($session) use ($now) {
 
             $start = $session->start_date_time;
             $end = $session->end_date_time;
+            $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+            $endWithTolerance = $end->copy()->addMinutes($tolerance);
 
             if ($now->lt($start)) {
                 $session->time_status = 'upcoming';
-            } elseif ($now->between($start, $end)) {
+            } elseif ($now->between($start, $endWithTolerance)) {
                 $session->time_status = 'ongoing';
             } else {
                 $session->time_status = 'finished';
@@ -61,66 +87,84 @@ class StudentAttendanceController extends Controller
 
         return view('student.attendance.index', [
             'user' => $user,
-            'activeSessions' => $activeSessions,
+            'activeSessions' => $sessions->getCollection(),
+            'activeSessionsPaginator' => $sessions,
         ]);
     }
 
 
+    // Menyimpan presensi mahasiswa pada sesi tertentu.
     public function store(Request $request, $sessionId)
     {
-
-        // 1. Validasi Input Awal (Token & Foto Wajib)
-        $request->validate([
-            'token' => 'required|string|size:6',
-            // Validasi foto: harus gambar, max 2MB
-            'proof_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ], [
-            'token.required' => 'Token sesi wajib diisi.',
-            'proof_photo.required' => 'Bukti foto wajib diupload.',
-            'proof_photo.image' => 'File harus berupa gambar.',
-        ]);
-
         $user = Auth::user();
-        $studentProfile = $user->studentProfile; // Asumsi relasi sudah benar
+        $studentProfile = $user->studentProfile;
 
         if (!$studentProfile) {
             return back()->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
 
-        // 2. Cari Sesi Berdasarkan TOKEN
-        $inputToken = strtoupper($request->token);
-        // Eager load course dan location untuk efisiensi
-        $session = AttendanceSession::where('session_token', $inputToken)
-            ->with(['course', 'location'])
-            ->first();
-
-        // --- VALIDASI UMUM (Berlaku untuk Online & Offline) ---
+        $session = AttendanceSession::with(['course', 'location'])->find($sessionId);
 
         if (!$session) {
-            return back()->withErrors(['token' => 'Token tidak valid atau sesi tidak ditemukan.'])->withInput();
+            return back()->with('error', 'Sesi presensi tidak ditemukan.');
         }
 
-        if ($session->status !== 'open') {
+        $rules = [
+            'status' => 'required|in:present,permit,sick',
+            'proof_photo' => 'required_without:photo_base64|image|mimes:jpeg,png,jpg|max:2048',
+            'photo_base64' => 'required_without:proof_photo|string',
+            'supporting_document' => 'required_if:status,permit,sick|file|mimes:jpeg,png,jpg,pdf|max:4096',
+        ];
+
+        $messages = [
+            'status.required' => 'Harap pilih status kehadiran.',
+            'proof_photo.required_without' => 'Foto bukti presensi wajib diambil.',
+            'photo_base64.required_without' => 'Foto bukti presensi wajib diambil.',
+            'proof_photo.image' => 'File foto harus berupa gambar.',
+            'supporting_document.required_if' => 'Bukti izin/sakit wajib diupload.',
+        ];
+
+        if ($session->session_token) {
+            $rules['token'] = 'required|string|size:6';
+            $messages['token.required'] = 'Token presensi wajib diisi.';
+            $messages['token.size'] = 'Token presensi harus 6 karakter.';
+        }
+
+        if ($session->learning_type === 'offline' && $request->input('status') === 'present') {
+            $rules['latitude'] = 'required|numeric';
+            $rules['longitude'] = 'required|numeric';
+            $messages['latitude.required'] = 'Gagal mendapatkan lokasi. Pastikan GPS aktif.';
+        }
+
+        $request->validate($rules, $messages);
+
+        if ($session->session_token) {
+            $inputToken = strtoupper($request->input('token', ''));
+            if ($inputToken !== $session->session_token) {
+                return back()->with('error', 'Token presensi tidak sesuai.');
+            }
+        }
+
+        if ($session->status === 'closed') {
             return back()->with('error', 'Sesi presensi ini sudah ditutup.');
         }
 
-        // Cek Waktu
-        $now = Carbon::now();
-        // Asumsi model AttendanceSession punya accessor 'start_datetime' dan 'end_datetime' yang mengembalikan objek Carbon
-        if (!$now->between($session->start_datetime, $session->end_datetime)) {
-            return back()->with('error', 'Waktu presensi untuk sesi ini sudah di luar jadwal.');
+        $hasEnrollments = $studentProfile->courses()->exists();
+        if ($hasEnrollments) {
+            $isEnrolled = $studentProfile->courses()
+                ->where('courses.id', $session->course_id)
+                ->exists();
+
+            if (!$isEnrolled) {
+                return back()->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
+            }
         }
 
-        // Cek Enrollment (Apakah mahasiswa mengambil matkul ini?)
-        $isEnrolled = $studentProfile->courses()
-            ->where('courses.id', $session->course_id)
-            ->exists();
-
-        if (!$isEnrolled) {
-            return back()->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
+        $classError = $this->getClassAccessError($session, $studentProfile);
+        if ($classError) {
+            return back()->with('error', $classError);
         }
 
-        // Cek Double Check-in
         $alreadyCheckedIn = AttendanceRecord::where('session_id', $session->id)
             ->where('student_id', $studentProfile->id)
             ->exists();
@@ -129,24 +173,40 @@ class StudentAttendanceController extends Controller
             return back()->with('warning', 'Anda sudah melakukan presensi pada sesi ini.');
         }
 
+        $now = Carbon::now();
+        [$startTime, $endTime] = $this->resolveSessionTimes($session);
 
-        // --- VALIDASI KONDISIONAL (ONLINE vs OFFLINE) ---
+        $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+        $lateDeadline = $endTime->copy()->addMinutes($tolerance);
 
-        // Jika sesi OFFLINE, wajib validasi lokasi
-        if ($session->learning_type === 'offline') {
-            // Validasi input koordinat harus ada
-            $request->validate([
-                'latitude' => 'required|numeric',
-                'longitude' => 'required|numeric',
-            ], [
-                'latitude.required' => 'Gagal mendapatkan lokasi. Pastikan GPS aktif dan izin lokasi diberikan untuk sesi Offline.',
-            ]);
+        if ($now->lt($startTime)) {
+            return back()->with('error', 'Sesi presensi belum dimulai.');
+        }
 
+        if ($now->gt($lateDeadline)) {
+            if ($request->input('status') === 'present') {
+                AttendanceRecord::create([
+                    'session_id' => $session->id,
+                    'student_id' => $studentProfile->id,
+                    'status' => 'absent',
+                    'submission_time' => $now,
+                    'learning_type' => $session->learning_type,
+                ]);
+
+                return redirect()->route('student.dashboard')
+                    ->with('error', 'Waktu presensi sudah lewat. Anda tercatat alpa.');
+            }
+
+            return back()->with('error', 'Waktu presensi untuk sesi ini sudah berakhir.');
+        }
+
+
+
+        if ($session->learning_type === 'offline' && $request->input('status') === 'present') {
             if (!$session->location) {
                 return back()->with('error', 'Data lokasi sesi belum diatur oleh dosen. Hubungi dosen.');
             }
 
-            // Hitung Jarak
             $distance = $this->calculateDistance(
                 (float)$request->latitude,
                 (float)$request->longitude,
@@ -154,55 +214,125 @@ class StudentAttendanceController extends Controller
                 (float)$session->location->longitude
             );
 
-            // Ambil radius toleransi (default 100m jika tidak diset)
             $allowedRadius = $session->location->radius_meters ?? 100;
 
             if ($distance > $allowedRadius) {
-                return back()->with('error', "Anda berada di luar radius lokasi presensi. Jarak Anda: " . round($distance) . "m (Max: {$allowedRadius}m).");
+                return back()->with('error', 'Anda tidak berada di area kampus.');
             }
         }
-        // JIKA SESSION ONLINE: Kode di atas dilewati, tidak ada pengecekan lokasi.
-
-
-        // --- PROSES PENYIMPANAN DATA ---
-
         try {
-            // 1. Upload Foto
             $photoPath = null;
             if ($request->hasFile('proof_photo')) {
-                // Simpan di storage/app/public/attendance_proofs
                 $photoPath = $request->file('proof_photo')->store('attendance_proofs', 'public');
+            } else {
+                $photoPath = $this->saveBase64Image($request->input('photo_base64'));
             }
 
-            // 2. Tentukan Status (Hadir/Telat)
-            // Asumsi ada kolom late_tolerance_minutes di tabel session, default 15 menit
-            $tolerance = $session->late_tolerance_minutes ?? 15;
-            $lateThreshold = $session->start_datetime->copy()->addMinutes($tolerance);
-            $status = $now->lte($lateThreshold) ? 'present' : 'late';
+            if (!$photoPath) {
+                return back()->with('error', 'Gagal menyimpan foto presensi. Silakan coba lagi.');
+            }
+            $documentPath = null;
+            if ($request->hasFile('supporting_document')) {
+                $documentPath = $request->file('supporting_document')->store('attendance_supporting_documents', 'public');
+            }
 
-            // 3. Simpan Record Presensi
+
+            $statusInput = $request->status;
+            if ($statusInput === 'present') {
+                $status = $now->lte($endTime) ? 'present' : 'late';
+            } else {
+                $status = $statusInput;
+            }
+            $locationMaps = null;
+            if ($statusInput === 'present' && $request->filled('latitude') && $request->filled('longitude')) {
+                $locationMaps = $request->latitude . ',' . $request->longitude;
+            }
             AttendanceRecord::create([
                 'session_id' => $session->id,
                 'student_id' => $studentProfile->id,
                 'status' => $status,
                 'submission_time' => $now,
-                'proof_photo' => $photoPath, // Path foto yang baru diupload
-                // Simpan koordinat jika ada (baik online/offline, sebagai data tambahan)
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
+                'photo_path' => $photoPath,
+                'supporting_document_path' => $documentPath,
+                'location_maps' => $locationMaps,
+                'learning_type' => $session->learning_type,
             ]);
 
-            $message = $status === 'present' ? 'Presensi berhasil! Tepat waktu.' : 'Presensi berhasil, namun Anda tercatat terlambat.';
+            $message = $status === 'present'
+                ? 'Presensi berhasil! Tepat waktu.'
+                : ($status === 'late' ? 'Presensi berhasil, namun Anda tercatat terlambat.' : 'Presensi berhasil tercatat.');
             return redirect()->route('student.dashboard')->with('success', $message);
         } catch (\Exception $e) {
-            // Hapus foto jika sudah terlanjur ke-upload tapi database gagal
             if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
+            }
+            if (isset($documentPath) && Storage::disk('public')->exists($documentPath)) {
+                Storage::disk('public')->delete($documentPath);
             }
             return back()->with('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
         }
     }
+    // Menampilkan form presensi untuk sesi tertentu.
+    public function checkinForm($sessionId)
+    {
+        $user = Auth::user();
+        $studentProfile = $this->getStudentProfile($user);
 
+        $session = AttendanceSession::with(['course', 'location'])->findOrFail($sessionId);
+
+        if ($session->status === 'closed') {
+            return redirect()->route('student.attendance.index')
+                ->with('error', 'Sesi presensi ini sudah ditutup.');
+        }
+
+        $now = Carbon::now();
+        [$startTime, $endTime] = $this->resolveSessionTimes($session);
+
+        $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+        $lateDeadline = $endTime->copy()->addMinutes($tolerance);
+
+        if (!$now->between($startTime, $lateDeadline)) {
+            return redirect()->route('student.attendance.index')
+                ->with('error', 'Waktu presensi untuk sesi ini sudah di luar jadwal.');
+        }
+
+        $hasEnrollments = $studentProfile->courses()->exists();
+        if ($hasEnrollments) {
+            $isEnrolled = $studentProfile->courses()
+                ->where('courses.id', $session->course_id)
+                ->exists();
+
+            if (!$isEnrolled) {
+                return redirect()->route('student.attendance.index')
+                    ->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
+            }
+        }
+
+        $classError = $this->getClassAccessError($session, $studentProfile);
+        if ($classError) {
+            return redirect()->route('student.attendance.index')
+                ->with('error', $classError);
+        }
+
+        $alreadyCheckedIn = AttendanceRecord::where('session_id', $session->id)
+            ->where('student_id', $studentProfile->id)
+            ->exists();
+
+        if ($alreadyCheckedIn) {
+            return redirect()->route('student.attendance.index')
+                ->with('warning', 'Anda sudah melakukan presensi pada sesi ini.');
+        }
+
+        if ($session->learning_type === 'offline' && !$session->location) {
+            return redirect()->route('student.attendance.index')
+                ->with('error', 'Data lokasi sesi belum diatur oleh dosen. Hubungi dosen.');
+        }
+
+        return view('student.attendance.form', [
+            'session' => $session,
+            'location' => $session->location,
+        ]);
+    }
 
     private function getStudentProfile($user)
     {
@@ -210,6 +340,39 @@ class StudentAttendanceController extends Controller
         $profile = $user->studentProfile;
         if (!$profile) abort(403, 'Profil mahasiswa tidak ditemukan.');
         return $profile;
+    }
+
+    private function getClassAccessError(AttendanceSession $session, StudentProfile $studentProfile): ?string
+    {
+        if (!$session->class_name) {
+            return null;
+        }
+
+        $hasEnrollments = $studentProfile->courses()->exists();
+
+        if ($hasEnrollments) {
+            $hasClassEnrollment = $studentProfile->courses()
+                ->where('courses.id', $session->course_id)
+                ->wherePivot('class_name', $session->class_name)
+                ->exists();
+
+            if (!$hasClassEnrollment) {
+                return 'Anda tidak terdaftar pada kelas sesi ini.';
+            }
+
+            return null;
+        }
+
+        $studentClass = trim((string) ($studentProfile->class_name ?? ''));
+        if ($studentClass === '') {
+            return 'Kelas mahasiswa belum diatur. Silakan lengkapi profil atau hubungi admin.';
+        }
+
+        if ($session->class_name !== $studentClass) {
+            return 'Anda tidak terdaftar pada kelas sesi ini.';
+        }
+
+        return null;
     }
 
 
@@ -244,70 +407,86 @@ class StudentAttendanceController extends Controller
         return $R * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
+    private function resolveSessionTimes(AttendanceSession $session): array
+    {
+        $sessionDate = $session->session_date instanceof Carbon
+            ? $session->session_date->toDateString()
+            : substr((string) $session->session_date, 0, 10);
+
+        $startTimeValue = $session->start_time instanceof Carbon
+            ? $session->start_time->format('H:i:s')
+            : (string) $session->start_time;
+        $endTimeValue = $session->end_time instanceof Carbon
+            ? $session->end_time->format('H:i:s')
+            : (string) $session->end_time;
+
+        return [
+            Carbon::parse($sessionDate . ' ' . $startTimeValue),
+            Carbon::parse($sessionDate . ' ' . $endTimeValue),
+        ];
+    }
+
+    // Menampilkan form input token presensi.
     public function showTokenForm()
     {
         return view('student.attendance.token-form');
     }
 
+    // Memvalidasi token dan mencatat presensi.
     public function processToken(Request $request)
     {
-        // 1. Validasi Input Dasar
         $request->validate([
-            'token' => 'required|string|size:6', // Token harus 6 karakter
+            'token' => 'required|string|size:6',
         ], [
             'token.required' => 'Harap masukkan token presensi.',
             'token.size' => 'Token harus terdiri dari 6 karakter.',
         ]);
 
-        // Ambil user mahasiswa yang sedang login
         $user = Auth::user();
-        // Pastikan dia punya profil mahasiswa (jaga-jaga)
         if (!$user->studentProfile) {
             return back()->with('error', 'Data profil mahasiswa tidak ditemukan.');
         }
         $studentProfile = $user->studentProfile;
 
-        // Ubah input token jadi huruf besar semua biar konsisten
         $inputToken = strtoupper($request->token);
 
-        // 2. Cari Sesi Berdasarkan Token di Database
-        // Kita eager load 'course' karena butuh datanya nanti
         $session = AttendanceSession::where('session_token', $inputToken)
             ->with('course')
             ->first();
 
-        // --- VALIDASI BERLAPIS (KEAMANAN) ---
 
-        // A. Cek apakah token ditemukan?
         if (!$session) {
-            // Gunakan withErrors untuk mengirim error spesifik ke field input
             return back()->withErrors(['token' => 'Token tidak valid atau sesi tidak ditemukan.'])->withInput();
         }
 
-        // B. Cek apakah status sesi OPEN?
         if ($session->status !== 'open') {
             return back()->with('error', 'Sesi presensi ini sudah ditutup atau belum dibuka oleh dosen.');
         }
 
-        // C. Cek Waktu (Apakah sekarang masih dalam rentang jam sesi?)
         $now = Carbon::now();
-        // Menggunakan accessor start_datetime dan end_datetime yang sudah kita buat di Model sebelumnya
-        if (!$now->between($session->start_datetime, $session->end_datetime)) {
+        $tolerance = max(0, (int) ($session->late_tolerance_minutes ?? 10));
+        $lateDeadline = $session->end_datetime->copy()->addMinutes($tolerance);
+
+        if (!$now->between($session->start_datetime, $lateDeadline)) {
             return back()->with('error', 'Waktu presensi untuk sesi ini sudah berakhir.');
         }
 
-        // D. CEK KRUSIAL: Apakah mahasiswa ini MENGAMBIL mata kuliah tersebut?
-        // Ini mencegah mahasiswa dari kelas lain absen sembarangan.
-        // Kita cek lewat relasi many-to-many di studentProfile
-        $isEnrolled = $studentProfile->courses()
-            ->where('courses.id', $session->course_id)
-            ->exists();
+        $hasEnrollments = $studentProfile->courses()->exists();
+        if ($hasEnrollments) {
+            $isEnrolled = $studentProfile->courses()
+                ->where('courses.id', $session->course_id)
+                ->exists();
 
-        if (!$isEnrolled) {
-            return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini (' . $session->course->course_name . '). Presensi ditolak.');
+            if (!$isEnrolled) {
+                return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini (' . $session->course->course_name . '). Presensi ditolak.');
+            }
         }
 
-        // E. Cek apakah mahasiswa sudah pernah absen di sesi ini sebelumnya? (Mencegah double input)
+        $classError = $this->getClassAccessError($session, $studentProfile);
+        if ($classError) {
+            return back()->with('error', $classError);
+        }
+
         $alreadyCheckedIn = AttendanceRecord::where('session_id', $session->id)
             ->where('student_id', $studentProfile->id)
             ->exists();
@@ -316,22 +495,17 @@ class StudentAttendanceController extends Controller
             return back()->with('warning', 'Anda sudah berhasil melakukan presensi pada sesi ini sebelumnya.');
         }
 
-        // --- SEMUA CEK LOLOS, SIMPAN DATA ---
 
         try {
-            // Simpan rekam kehadiran
             AttendanceRecord::create([
                 'session_id' => $session->id,
                 'student_id' => $studentProfile->id,
-                'status' => 'present', // Untuk sementara anggap 'hadir' jika berhasil input token
+                'status' => 'present',
                 'submission_time' => $now,
-                // Nanti bisa ditambah photo_path atau lokasi jika fitur sudah ada
             ]);
 
-            // Redirect ke dashboard dengan pesan sukses
             return redirect()->route('student.dashboard')->with('success', 'Presensi berhasil! Kehadiran Anda di mata kuliah ' . $session->course->course_name . ' telah tercatat.');
         } catch (\Exception $e) {
-            // Tangani jika ada error database tak terduga
             return back()->with('error', 'Terjadi kesalahan sistem saat menyimpan data. Silakan coba lagi.');
         }
     }
