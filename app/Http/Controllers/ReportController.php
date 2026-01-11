@@ -132,8 +132,9 @@ class ReportController extends Controller
         if ($request->filled('course_id')) {
             $query->where('course_id', $request->course_id);
         }
-        if ($request->filled('learning_type')) {
-            $query->where('learning_type', $request->learning_type);
+        if ($request->filled('learning_type') || $request->filled('session_type')) {
+            $learningType = $request->input('learning_type', $request->input('session_type'));
+            $query->where('learning_type', $learningType);
         }
         if ($request->filled('class_name')) {
             $query->where('class_name', $request->class_name);

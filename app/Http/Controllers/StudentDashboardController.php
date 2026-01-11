@@ -32,11 +32,15 @@ class StudentDashboardController extends Controller
         $todayStr = Carbon::today()->toDateString();
         $now = Carbon::now();
         $joinedAt = $user->created_at ?? $now;
-        $hasEnrollments = $studentProfile->courses()->exists();
-        $enrolledCourseIds = $hasEnrollments ? $studentProfile->courses()->pluck('courses.id') : collect();
+        $courseEnrollments = $studentProfile->courses()
+            ->select('courses.id')
+            ->withPivot('class_name')
+            ->get();
+        $hasEnrollments = $courseEnrollments->isNotEmpty();
+        $enrolledCourseIds = $courseEnrollments->pluck('id');
         $studentClassNames = $hasEnrollments
-            ? $studentProfile->courses()
-                ->pluck('course_enrollments.class_name')
+            ? $courseEnrollments
+                ->pluck('pivot.class_name')
                 ->filter()
                 ->unique()
                 ->values()

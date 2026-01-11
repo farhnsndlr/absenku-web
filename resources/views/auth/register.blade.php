@@ -17,7 +17,7 @@
             <!-- Logo dan Brand (Center) -->
             <div class="flex items-center gap-3">
                 <div class="w-14 h-14 flex items-center justify-center">
-                    <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="w-10 h-10">
+                    <img src="{{ asset('images/logo-absenku.svg') }}" alt="Logo AbsenKu" class="w-10 h-10">
                 </div>
                 <h1 class="text-3xl font-bold text-blue-600">AbsenKu</h1>
             </div>
@@ -56,7 +56,7 @@
             @endif
 
             <div class="mb-6">
-                <a href="{{ route('auth.google') }}"
+                <a href="{{ route('auth.google', ['intent' => 'signup']) }}"
                    class="w-full inline-flex items-center justify-center gap-3 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:bg-blue-50 transition">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8a6.4 6.4 0 010-12.8c1.8 0 3.1.8 3.8 1.5l2.6-2.5A9.9 9.9 0 0012 2.1 9.9 9.9 0 0012 22c5.7 0 9.5-4 9.5-9.6 0-.6-.1-1.1-.2-1.6H12z"/>
@@ -85,7 +85,7 @@
                             type="text"
                             name="name"
                             value="{{ old('name') }}"
-                            placeholder="Abib Yolian"
+                            placeholder="John Doe"
                             required
                             autofocus
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 @error('name') border-red-400 @enderror"
@@ -107,7 +107,7 @@
                             type="text"
                             name="npm"
                             value="{{ old('npm') }}"
-                            placeholder="123456789"
+                            placeholder="10123xxx"
                             required
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 @error('npm') border-red-400 @enderror"
                         >
@@ -128,7 +128,7 @@
                             type="email"
                             name="email"
                             value="{{ old('email') }}"
-                            placeholder="Yolian@gmail.com"
+                            placeholder="johndoe@gmail.com"
                             required
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 @error('email') border-red-400 @enderror"
                         >
@@ -149,7 +149,7 @@
                             type="text"
                             name="phone"
                             value="{{ old('phone') }}"
-                            placeholder="081234567890"
+                            placeholder="081234xxxxxx"
                             required
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 @error('phone') border-red-400 @enderror"
                         >

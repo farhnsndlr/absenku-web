@@ -59,13 +59,15 @@
 
 
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                <p class="text-xs text-gray-500 mb-2">Wajib diisi untuk keperluan identitas akademik.</p>
                 <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4">
                 @error('name') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                <p class="text-xs text-gray-500 mb-2">Wajib diisi agar notifikasi dan verifikasi akun berjalan.</p>
                 <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4">
                 @error('email') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
@@ -85,14 +87,16 @@
                     @error('nid') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
             @elseif($user->role === 'student')
-                 <div>
-                    <label for="npm" class="block text-sm font-medium text-gray-700 mb-1">NPM (Nomor Pokok Mahasiswa)</label>
-                    <input type="text" name="npm" id="npm" value="{{ old('npm', $user->profile->npm ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4">
+                <div>
+                    <label for="npm" class="block text-sm font-medium text-gray-700 mb-1">NPM (Nomor Pokok Mahasiswa) <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-gray-500 mb-2">Wajib diisi untuk validasi identitas mahasiswa.</p>
+                    <input type="text" name="npm" id="npm" value="{{ old('npm', $user->profile->npm ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4" required>
                     @error('npm') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="class_name" class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
-                    <input type="text" name="class_name" id="class_name" value="{{ old('class_name', $user->profile->class_name ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 3KA15">
+                    <label for="class_name" class="block text-sm font-medium text-gray-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-gray-500 mb-2">Wajib diisi agar sistem bisa mencocokkan jadwal dan sesi presensi Anda.</p>
+                    <input type="text" name="class_name" id="class_name" value="{{ old('class_name', $user->profile->class_name ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 shadow-sm py-2.5 px-4" placeholder="Contoh: 3KA15" required>
                     @error('class_name') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                 </div>
             @endif

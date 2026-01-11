@@ -137,4 +137,10 @@ class AttendanceSession extends Model
         if (!$this->session_token_expires_at) return false;
         return now()->lessThanOrEqualTo($this->session_token_expires_at);
     }
+
+    // Accessor tipe sesi agar kompatibel dengan view lama.
+    public function getSessionTypeAttribute()
+    {
+        return $this->learning_type ?? $this->course?->session_type;
+    }
 }

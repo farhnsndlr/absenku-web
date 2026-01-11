@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - {{ config('app.name', 'AbsenKu') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-absenku.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo-absenku.svg') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
             <div class="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
                 <a href="{{ auth()->check() ? (auth()->user()->role === 'admin' ? route('admin.dashboard') : (auth()->user()->role === 'lecturer' ? route('lecturer.dashboard') : route('student.dashboard'))) : route('landing') }}" class="flex items-center gap-2 px-7">
-                    <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="w-10 h-10">
+                    <img src="{{ asset('images/logo-absenku.svg') }}" alt="Logo AbsenKu" class="w-10 h-10">
                     <span class="text-xl font-bold text-blue-600">AbsenKu</span>
                 </a>
             </div>

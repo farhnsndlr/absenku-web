@@ -12,6 +12,51 @@
 
 {{-- Konten Utama Dashboard --}}
 @section('content')
+    @php
+        $studentProfile = auth()->user()->studentProfile;
+        $showProfilePrompt = $studentProfile && trim((string) ($studentProfile->class_name ?? '')) === '';
+    @endphp
+
+    @if($showProfilePrompt)
+        <div id="profile-prompt" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 sm:p-8">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Lengkapi Profil Anda</h3>
+                        <p class="text-gray-600 mt-2">Kelas belum diisi. Silakan edit profil agar bisa mengikuti sesi presensi yang sesuai.</p>
+                    </div>
+                    <button type="button" id="profile-prompt-close" class="text-gray-400 hover:text-gray-600 transition">
+                        <span class="sr-only">Tutup</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <a href="{{ route('profile.edit') }}" class="inline-flex justify-center items-center px-5 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                        Edit Profil
+                    </a>
+                    <button type="button" id="profile-prompt-dismiss" class="inline-flex justify-center items-center px-5 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">
+                        Nanti Saja
+                    </button>
+                </div>
+            </div>
+        </div>
+        <script>
+            const profilePrompt = document.getElementById('profile-prompt');
+            const closePrompt = document.getElementById('profile-prompt-close');
+            const dismissPrompt = document.getElementById('profile-prompt-dismiss');
+            [closePrompt, dismissPrompt].forEach((btn) => {
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    if (profilePrompt) {
+                        profilePrompt.classList.add('hidden');
+                    }
+                });
+            });
+        </script>
+    @endif
+
     {{-- Sapaan Selamat Datang --}}
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900">
