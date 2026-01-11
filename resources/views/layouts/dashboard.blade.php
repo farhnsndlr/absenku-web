@@ -92,7 +92,7 @@
 
         <div class="flex-1 flex flex-col overflow-hidden">
             <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
                     <button type="button"
                             class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 lg:hidden"
                             @click="sidebarOpen = true"
@@ -103,7 +103,7 @@
                     </button>
                     <h1 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">@yield('page-title', 'Dashboard')</h1>
                 </div>
-                <div class="flex items-center gap-2 sm:gap-4 ml-4">
+                <div class="flex items-center gap-2 sm:gap-4 ml-4 shrink-0">
                     <div class="relative" x-data="{ openNotif: false }">
                         {{-- TRIGGER BUTTON --}}
                         <button @click="openNotif = !openNotif" type="button" class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500">
