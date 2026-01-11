@@ -22,7 +22,7 @@ class SocialAuthController extends Controller
     }
 
     // Menangani callback login sosial.
-    public function callback()
+    public function callback(Request $request)
     {
         $googleUser = Socialite::driver('google')->user();
 
@@ -67,6 +67,8 @@ class SocialAuthController extends Controller
         });
 
         Auth::login($user);
+        $request->session()->regenerate();
+        $this->invalidateOtherSessions($request, $user);
         if ($intent === 'signup' || $createdNew) {
             return redirect()->route('profile.edit')
                 ->with('success', 'Login Google berhasil. Lengkapi data profil Anda.');
@@ -83,6 +85,18 @@ class SocialAuthController extends Controller
             'lecturer' => 'lecturer.dashboard',
             default => 'student.dashboard',
         };
+    }
+
+    private function invalidateOtherSessions(Request $request, User $user): void
+    {
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $user->id)
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
     }
 
 }
