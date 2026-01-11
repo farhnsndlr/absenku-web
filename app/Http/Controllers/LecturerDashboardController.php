@@ -41,7 +41,7 @@ class LecturerDashboardController extends Controller
             ->where('courses.lecturer_id', $lecturerId)
             ->whereBetween('attendance_sessions.session_date', [$startOfWeek, $endOfWeek])
             ->selectRaw('count(*) as total_records')
-            ->selectRaw('sum(status = "present") as total_present')
+            ->selectRaw('sum(attendance_records.status = "present") as total_present')
             ->first();
 
         $totalPresent = (int) ($attendanceSummary->total_present ?? 0);
@@ -88,7 +88,7 @@ class LecturerDashboardController extends Controller
             ->whereIn('attendance_sessions.course_id', $courseIds)
             ->select('attendance_sessions.course_id')
             ->selectRaw('count(*) as total_records')
-            ->selectRaw('sum(status = "present") as present')
+            ->selectRaw('sum(attendance_records.status = "present") as present')
             ->groupBy('attendance_sessions.course_id')
             ->get()
             ->keyBy('course_id');
