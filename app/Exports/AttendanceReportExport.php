@@ -58,7 +58,7 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
 
         if (!empty($this->filters['session_type'])) {
             $query->whereHas('session', function ($q) {
-                $q->where('session_type', $this->filters['session_type']);
+                $q->where('learning_type', $this->filters['session_type']);
             });
         }
 
@@ -107,6 +107,7 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
             'Status Kehadiran',
             'Waktu Submit Absen',
             'Mode Absen (Lokasi)',
+            'Koordinat Absen',
         ];
     }
 
@@ -121,19 +122,22 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
 
         $npm = $record->user?->npm ?? $record->user?->id ?? '-';
 
+        $sessionType = $record->session->session_type;
+
         return [
             $sessionDate,
             $startTime . ' - ' . $endTime,
             $record->session->course->course_name ?? '-',
             $record->session->course->course_code ?? '-',
             $record->session->class_name ?? '-',
-            ucfirst($record->session->session_type),
-            $record->session->location->location_name ?? ($record->session->session_type == 'online' ? 'Online (Daring)' : '-'),
+            $sessionType ? ucfirst($sessionType) : '-',
+            $record->session->location->location_name ?? ($sessionType == 'online' ? 'Online (Daring)' : '-'),
             $npm,
             $record->user?->name ?? '-',
             $this->formatStatus($record->status),
             $submissionTime,
             ucfirst($record->learning_type),
+            $record->location_maps ?? '-',
         ];
     }
 

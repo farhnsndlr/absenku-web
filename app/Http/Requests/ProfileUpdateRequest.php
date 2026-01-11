@@ -37,10 +37,31 @@ class ProfileUpdateRequest extends FormRequest
         if ($user->profile_type === LecturerProfile::class) {
             $rules['nid'] = ['required', 'string', 'max:20'];
         } elseif ($user->profile_type === StudentProfile::class) {
-            $rules['npm'] = ['required', 'string', 'max:20'];
+            $rules['npm'] = [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('student_profiles', 'npm')->ignore($user->profile_id),
+            ];
             $rules['class_name'] = ['required', 'string', 'max:50'];
         }
 
         return $rules;
+    }
+
+    public function messages(): array
+    {
+        return [
+            'npm.unique' => 'NPM sudah terdaftar. Harap kontak Admin untuk melapor.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('class_name')) {
+            $this->merge([
+                'class_name' => strtoupper((string) $this->input('class_name')),
+            ]);
+        }
     }
 }

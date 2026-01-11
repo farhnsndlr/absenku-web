@@ -64,6 +64,10 @@ class SessionController extends Controller
         ]);
 
         $token = strtoupper(Str::random(8));
+        $tokenExpiresAt = Carbon::createFromFormat(
+            'Y-m-d H:i',
+            $request->session_date . ' ' . $request->end_time
+        );
 
         AttendanceSession::create([
             'course_id' => $request->course_id,
@@ -74,6 +78,7 @@ class SessionController extends Controller
             'location_id' => $request->learning_type === 'offline' ? $request->location_id : null,
             'lateness_limit' => $request->lateness_limit,
             'session_token' => $token,
+            'session_token_expires_at' => $tokenExpiresAt,
             'description' => $request->topic,
         ]);
 

@@ -10,7 +10,9 @@ class NotificationController extends Controller
     // Menandai semua notifikasi sebagai dibaca.
     public function markAllAsRead(Request $request)
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $request->user()
+            ->unreadNotifications()
+            ->update(['read_at' => now()]);
 
         return back();
     }

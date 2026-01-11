@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class LecturerDashboardController extends Controller
@@ -23,31 +24,28 @@ class LecturerDashboardController extends Controller
 
         $tanggalHariIni = Carbon::today();
 
+        $taughtCourses = Course::where('lecturer_id', $lecturerId)->get();
+        $totalCourses = $taughtCourses->count();
 
-        $totalCourses = Course::where('lecturer_id', $lecturerId)
-            ->count();
-
-        $totalStudents = Course::where('lecturer_id', $lecturerId)
-            ->with('students')
-            ->get()
-            ->pluck('students')
-            ->flatten()
-            ->unique('id')
-            ->count();
+        $totalStudents = DB::table('course_enrollments')
+            ->join('courses', 'course_enrollments.course_id', '=', 'courses.id')
+            ->where('courses.lecturer_id', $lecturerId)
+            ->distinct('course_enrollments.student_profile_id')
+            ->count('course_enrollments.student_profile_id');
 
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 
-        $attendancesThisWeek = AttendanceRecord::whereHas('session.course', function ($query) use ($lecturerId) {
-            $query->where('lecturer_id', $lecturerId);
-        })
-            ->whereHas('session', function ($query) use ($startOfWeek, $endOfWeek) {
-                $query->whereBetween('session_date', [$startOfWeek, $endOfWeek]);
-            })
-            ->get();
+        $attendanceSummary = AttendanceRecord::join('attendance_sessions', 'attendance_records.session_id', '=', 'attendance_sessions.id')
+            ->join('courses', 'attendance_sessions.course_id', '=', 'courses.id')
+            ->where('courses.lecturer_id', $lecturerId)
+            ->whereBetween('attendance_sessions.session_date', [$startOfWeek, $endOfWeek])
+            ->selectRaw('count(*) as total_records')
+            ->selectRaw('sum(status = "present") as total_present')
+            ->first();
 
-        $totalPresent = $attendancesThisWeek->where('status', 'present')->count();
-        $totalRecords = $attendancesThisWeek->count();
+        $totalPresent = (int) ($attendanceSummary->total_present ?? 0);
+        $totalRecords = (int) ($attendanceSummary->total_records ?? 0);
 
         $averageAttendance = $totalRecords > 0 ? ($totalPresent / $totalRecords) * 100 : 0;
 
@@ -84,31 +82,43 @@ class LecturerDashboardController extends Controller
 
 
 
-        $taughtCourses = Course::where('lecturer_id', $lecturerId)
-            ->get();
+        $courseIds = $taughtCourses->pluck('id');
+
+        $courseRecordStats = AttendanceRecord::join('attendance_sessions', 'attendance_records.session_id', '=', 'attendance_sessions.id')
+            ->whereIn('attendance_sessions.course_id', $courseIds)
+            ->select('attendance_sessions.course_id')
+            ->selectRaw('count(*) as total_records')
+            ->selectRaw('sum(status = "present") as present')
+            ->groupBy('attendance_sessions.course_id')
+            ->get()
+            ->keyBy('course_id');
+
+        $sessionCounts = AttendanceSession::whereIn('course_id', $courseIds)
+            ->where('session_date', '<=', Carbon::now())
+            ->select('course_id')
+            ->selectRaw('count(*) as session_count')
+            ->groupBy('course_id')
+            ->get()
+            ->keyBy('course_id');
+
+        $lastSessions = AttendanceSession::whereIn('course_id', $courseIds)
+            ->where('session_date', '<=', Carbon::now())
+            ->orderBy('session_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get()
+            ->groupBy('course_id')
+            ->map->first();
 
         $courseAttendanceStatus = [];
 
         foreach ($taughtCourses as $course) {
-            $totalPresentCourse = AttendanceRecord::whereHas('session', function ($query) use ($course) {
-                $query->where('course_id', $course->id);
-            })->where('status', 'present')->count();
+            $recordStats = $courseRecordStats->get($course->id);
+            $presentCount = (int) ($recordStats->present ?? 0);
+            $totalRecordsCourse = (int) ($recordStats->total_records ?? 0);
+            $percentageCourse = $totalRecordsCourse > 0 ? ($presentCount / $totalRecordsCourse) * 100 : 0;
 
-            $totalRecordsCourse = AttendanceRecord::whereHas('session', function ($query) use ($course) {
-                $query->where('course_id', $course->id);
-            })->count();
-
-            $percentageCourse = $totalRecordsCourse > 0 ? ($totalPresentCourse / $totalRecordsCourse) * 100 : 0;
-
-            $lastSession = AttendanceSession::where('course_id', $course->id)
-                ->where('session_date', '<=', Carbon::now())
-                ->orderBy('session_date', 'desc')
-                ->orderBy('start_time', 'desc')
-                ->first();
-
-            $sessionCount = AttendanceSession::where('course_id', $course->id)
-                ->where('session_date', '<=', Carbon::now())
-                ->count();
+            $sessionCount = (int) ($sessionCounts->get($course->id)->session_count ?? 0);
+            $lastSession = $lastSessions->get($course->id);
 
             $courseAttendanceStatus[] = [
                 'course' => $course,

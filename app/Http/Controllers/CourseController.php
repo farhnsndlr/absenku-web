@@ -73,10 +73,10 @@ class CourseController extends Controller
         $statistics = [
             'total_courses' => $courses->count(),
             'total_students' => $courses->sum(function ($course) {
-                return $course->enrollments()->count();
+                return $course->enrollments->count();
             }),
             'total_sessions' => $courses->sum(function ($course) {
-                return $course->sessions()->count();
+                return $course->sessions->count();
             }),
         ];
 

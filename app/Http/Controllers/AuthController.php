@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\StudentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -27,20 +29,37 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'npm' => 'required|string|max:255|unique:student_profiles,npm',
             'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'required|string|max:30',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'student',
-        ]);
+        $user = null;
+        DB::transaction(function () use ($request, &$user) {
+            $profile = StudentProfile::create([
+                'npm' => $request->npm,
+                'class_name' => null,
+                'full_name' => $request->name,
+                'phone_number' => $request->phone,
+            ]);
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'student',
+                'profile_id' => $profile->id,
+                'profile_type' => StudentProfile::class,
+            ]);
+        });
 
         Auth::login($user);
 
-        return redirect()->route('student.dashboard');
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->route('verification.notice')
+            ->with('status', 'Kami sudah mengirim tautan verifikasi ke email Anda.');
     }
 
     // Memproses login pengguna.
@@ -55,6 +74,11 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
             $user = Auth::user();
+
+            if ($user->role === 'student' && !$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice')
+                    ->with('status', 'Silakan verifikasi email Anda terlebih dahulu.');
+            }
 
             switch ($user->role) {
                 case 'admin':

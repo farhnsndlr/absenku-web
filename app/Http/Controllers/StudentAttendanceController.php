@@ -21,11 +21,12 @@ class StudentAttendanceController extends Controller
         $now = Carbon::now();
         $today = $now->toDateString();
 
-        $hasEnrollments = $student->courses()->exists();
-        $enrolledCourseIds = $hasEnrollments ? $student->courses()->pluck('courses.id')->toArray() : [];
+        $courseEnrollments = $this->loadEnrollments($student);
+        $hasEnrollments = $courseEnrollments->isNotEmpty();
+        $enrolledCourseIds = $courseEnrollments->pluck('id')->all();
         $studentClassNames = $hasEnrollments
-            ? $student->courses()
-                ->pluck('course_enrollments.class_name')
+            ? $courseEnrollments
+                ->pluck('pivot.class_name')
                 ->filter()
                 ->unique()
                 ->values()
@@ -149,18 +150,13 @@ class StudentAttendanceController extends Controller
             return back()->with('error', 'Sesi presensi ini sudah ditutup.');
         }
 
-        $hasEnrollments = $studentProfile->courses()->exists();
-        if ($hasEnrollments) {
-            $isEnrolled = $studentProfile->courses()
-                ->where('courses.id', $session->course_id)
-                ->exists();
-
-            if (!$isEnrolled) {
-                return back()->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
-            }
+        $enrollments = $this->loadEnrollments($studentProfile);
+        $enrolledCourseIds = $enrollments->pluck('id');
+        if ($enrolledCourseIds->isNotEmpty() && !$enrolledCourseIds->contains($session->course_id)) {
+            return back()->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
         }
 
-        $classError = $this->getClassAccessError($session, $studentProfile);
+        $classError = $this->getClassAccessError($session, $studentProfile, $enrollments);
         if ($classError) {
             return back()->with('error', $classError);
         }
@@ -296,19 +292,14 @@ class StudentAttendanceController extends Controller
                 ->with('error', 'Waktu presensi untuk sesi ini sudah di luar jadwal.');
         }
 
-        $hasEnrollments = $studentProfile->courses()->exists();
-        if ($hasEnrollments) {
-            $isEnrolled = $studentProfile->courses()
-                ->where('courses.id', $session->course_id)
-                ->exists();
-
-            if (!$isEnrolled) {
-                return redirect()->route('student.attendance.index')
-                    ->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
-            }
+        $enrollments = $this->loadEnrollments($studentProfile);
+        $enrolledCourseIds = $enrollments->pluck('id');
+        if ($enrolledCourseIds->isNotEmpty() && !$enrolledCourseIds->contains($session->course_id)) {
+            return redirect()->route('student.attendance.index')
+                ->with('error', 'Anda tidak terdaftar pada mata kuliah ini.');
         }
 
-        $classError = $this->getClassAccessError($session, $studentProfile);
+        $classError = $this->getClassAccessError($session, $studentProfile, $enrollments);
         if ($classError) {
             return redirect()->route('student.attendance.index')
                 ->with('error', $classError);
@@ -342,21 +333,26 @@ class StudentAttendanceController extends Controller
         return $profile;
     }
 
-    private function getClassAccessError(AttendanceSession $session, StudentProfile $studentProfile): ?string
+    private function getClassAccessError(AttendanceSession $session, StudentProfile $studentProfile, $enrollments = null): ?string
     {
         if (!$session->class_name) {
             return null;
         }
 
-        $hasEnrollments = $studentProfile->courses()->exists();
+        $enrollments = $enrollments ?? $this->loadEnrollments($studentProfile);
+        $hasEnrollments = $enrollments->isNotEmpty();
 
         if ($hasEnrollments) {
-            $hasClassEnrollment = $studentProfile->courses()
-                ->where('courses.id', $session->course_id)
-                ->wherePivot('class_name', $session->class_name)
-                ->exists();
+            $courseEnrollments = $enrollments->where('id', $session->course_id);
+            if ($courseEnrollments->isEmpty()) {
+                return 'Anda tidak terdaftar pada mata kuliah ini.';
+            }
 
-            if (!$hasClassEnrollment) {
+            $classNames = $courseEnrollments
+                ->pluck('pivot.class_name')
+                ->filter();
+
+            if (!$classNames->contains($session->class_name)) {
                 return 'Anda tidak terdaftar pada kelas sesi ini.';
             }
 
@@ -405,6 +401,14 @@ class StudentAttendanceController extends Controller
             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
             sin($dLon / 2) ** 2;
         return $R * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
+    private function loadEnrollments(StudentProfile $studentProfile)
+    {
+        return $studentProfile->courses()
+            ->select('courses.id')
+            ->withPivot('class_name')
+            ->get();
     }
 
     private function resolveSessionTimes(AttendanceSession $session): array
@@ -471,18 +475,13 @@ class StudentAttendanceController extends Controller
             return back()->with('error', 'Waktu presensi untuk sesi ini sudah berakhir.');
         }
 
-        $hasEnrollments = $studentProfile->courses()->exists();
-        if ($hasEnrollments) {
-            $isEnrolled = $studentProfile->courses()
-                ->where('courses.id', $session->course_id)
-                ->exists();
-
-            if (!$isEnrolled) {
-                return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini (' . $session->course->course_name . '). Presensi ditolak.');
-            }
+        $enrollments = $this->loadEnrollments($studentProfile);
+        $enrolledCourseIds = $enrollments->pluck('id');
+        if ($enrolledCourseIds->isNotEmpty() && !$enrolledCourseIds->contains($session->course_id)) {
+            return back()->with('error', 'Anda tidak terdaftar di mata kuliah ini (' . $session->course->course_name . '). Presensi ditolak.');
         }
 
-        $classError = $this->getClassAccessError($session, $studentProfile);
+        $classError = $this->getClassAccessError($session, $studentProfile, $enrollments);
         if ($classError) {
             return back()->with('error', $classError);
         }

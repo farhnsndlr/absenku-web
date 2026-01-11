@@ -15,6 +15,7 @@ use App\Http\Controllers\LecturerSessionController;
 use App\Http\Controllers\AttendanceMediaController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\StudentAttendanceController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 // Publik
 Route::view('/', 'landing')->name('landing');
@@ -35,6 +36,32 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    Route::get('/email/verify', function () {
+        return view('auth.verify');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+
+        $user = $request->user();
+        $redirect = match ($user->role) {
+            'admin' => 'admin.dashboard',
+            'lecturer' => 'lecturer.dashboard',
+            default => 'student.dashboard',
+        };
+
+        return redirect()->route($redirect)
+            ->with('success', 'Email berhasil diverifikasi.');
+    })->middleware('signed')->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (Illuminate\Http\Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('status', 'Tautan verifikasi baru telah dikirim.');
+    })->middleware('throttle:6,1')->name('verification.send');
+});
+
+Route::middleware('auth')->group(function () {
     Route::get('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
         ->name('notifications.readAll');
     Route::get('/notifications/unread', [NotificationController::class, 'unread'])
@@ -86,7 +113,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Mahasiswa
-    Route::prefix('mahasiswa')->name('student.')->middleware('role:student')->group(function () {
+    Route::prefix('mahasiswa')->name('student.')->middleware(['role:student', 'verified'])->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::get('/presensi/input', [StudentAttendanceController::class, 'showTokenForm'])->name('attendance.input');
         Route::post('/presensi/process', [StudentAttendanceController::class, 'processToken'])->name('attendance.process');

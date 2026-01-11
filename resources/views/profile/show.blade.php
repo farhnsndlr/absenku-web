@@ -102,17 +102,17 @@
                             <p class="text-gray-900 text-base border-b border-gray-100 pb-2">{{ $user->created_at->translatedFormat('d F Y') }}</p>
                         </div>
 
-                        {{-- TAMBAHAN: Tampilkan Kelas untuk Mahasiswa --}}
-                        @if($user->role === 'student' && isset($additionalData['student_classes']) && $additionalData['student_classes']->count() > 0)
+                        {{-- Kelas untuk Mahasiswa --}}
+                        @if($user->role === 'student')
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-500 mb-2">Kelas</label>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($additionalData['student_classes'] as $className)
-                                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                            {{ $className }}
-                                        </span>
-                                    @endforeach
-                                </div>
+                                @if($user->profile && $user->profile->class_name)
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                        {{ strtoupper($user->profile->class_name) }}
+                                    </span>
+                                @else
+                                    <p class="text-gray-400 italic text-sm">Belum diatur</p>
+                                @endif
                             </div>
                         @endif
                     </div>

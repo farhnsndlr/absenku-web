@@ -93,6 +93,10 @@ class LecturerSessionController extends Controller
         $validated = $request->validated();
 
         $validated['session_token'] = Str::upper(Str::random(6));
+        $validated['session_token_expires_at'] = Carbon::createFromFormat(
+            'Y-m-d H:i',
+            $validated['session_date'] . ' ' . $validated['end_time']
+        );
         $validated['lecturer_id'] = Auth::id();
 
         $validated['status'] = 'scheduled';
@@ -207,6 +211,15 @@ class LecturerSessionController extends Controller
 
         if ($validated['learning_type'] === 'online') {
             $validated['location_id'] = null;
+        }
+
+        if ($session->session_token) {
+            $validated['session_token_expires_at'] = Carbon::createFromFormat(
+                'Y-m-d H:i',
+                $validated['session_date'] . ' ' . $validated['end_time']
+            );
+        } else {
+            $validated['session_token_expires_at'] = null;
         }
 
         $session->update($validated);

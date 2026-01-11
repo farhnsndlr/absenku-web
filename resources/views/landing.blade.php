@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'AbsenKu') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-absenku.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo-absenku.svg') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,7 +45,7 @@
             <div class="flex justify-between items-center h-20">
                 <div class="flex-shrink-0">
                     <a href="/" class="flex items-center">
-                        <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="w-10 h-10">
+                        <img src="{{ asset('images/logo-absenku.svg') }}" alt="Logo AbsenKu" class="w-10 h-10">
                         <span class="ml-2 text-3xl font-extrabold text-blue-600">AbsenKu</span>
                     </a>
                 </div>
@@ -54,7 +54,7 @@
                     <a href="#" class="text-base font-medium text-gray-500 hover:text-blue-600 transition">Beranda</a>
                     <a href="#features" class="text-base font-medium text-gray-500 hover:text-blue-600 transition">Fitur</a>
                     <a href="#cara-kerja" class="text-base font-medium text-gray-500 hover:text-blue-600 transition">Cara Kerja</a>
-                    <a href="#kontak" class="text-base font-medium text-gray-500 hover:text-blue-600 transition">Kontak</a>
+                    <a href="#team" class="text-base font-medium text-gray-500 hover:text-blue-600 transition">Team Kami</a>
                 </nav>
 
                 <div class="hidden md:flex items-center space-x-4">
@@ -80,7 +80,43 @@
                         </a>
                     @endauth
                 </div>
+                <button id="mobile-menu-button" type="button" class="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition" aria-expanded="false" aria-controls="mobile-menu">
+                    <span class="sr-only">Buka menu</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
                  </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-100 bg-white overflow-hidden max-h-0 opacity-0 transition-all duration-300 ease-out">
+            <div class="px-4 py-4 space-y-2">
+                <a href="#" class="block text-base font-medium text-gray-600 hover:text-blue-600">Beranda</a>
+                <a href="#features" class="block text-base font-medium text-gray-600 hover:text-blue-600">Fitur</a>
+                <a href="#cara-kerja" class="block text-base font-medium text-gray-600 hover:text-blue-600">Cara Kerja</a>
+                <a href="#kontak" class="block text-base font-medium text-gray-600 hover:text-blue-600">Kontak</a>
+            </div>
+            <div class="px-4 pb-4 space-y-2">
+                @auth
+                    @php
+                        $dashboardRoute = match(auth()->user()->role) {
+                            'admin' => 'admin.dashboard',
+                            'lecturer' => 'lecturer.dashboard',
+                            'student' => 'student.dashboard',
+                            default => 'login',
+                        };
+                    @endphp
+                    <a href="{{ route($dashboardRoute) }}" class="block text-center text-base font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg transition">
+                        Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="block text-center text-base font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-3 rounded-lg border border-blue-200 transition">
+                        Masuk
+                    </a>
+                    <a href="{{ route('register') }}" class="block text-center text-base font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg shadow transition">
+                        Daftar
+                    </a>
+                @endauth
+            </div>
         </div>
     </header>
 
@@ -109,7 +145,7 @@
                     </div>
 
                     <div class="relative lg:ml-10 reveal" data-animate data-delay="120">
-                        <img src="https://placehold.co/600x500/e0e7ff/3b82f6?text=Ilustrasi+Absen+HP&font=roboto" alt="Ilustrasi Absensi Mobile" class="w-full h-auto rounded-3xl shadow-2xl transform hover:scale-105 transition duration-500 float-soft">
+                        <img src="{{ asset('images/foto-melihat-handphone.webp') }}" alt="Ilustrasi Absensi Mobile" class="w-full h-auto rounded-3xl shadow-2xl transform hover:scale-105 transition duration-500 float-soft">
 
                         <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
                         <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
@@ -219,17 +255,17 @@
             </div>
         </section>
 
-        <section class="bg-gray-50 py-16">
+        <section id="team" class="bg-gray-50 py-16">
             <div class="max-w-6xl mx-auto px-6">
                 <div class="text-center mb-10 reveal" data-animate>
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Our Teams</h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Team Kami</h2>
                     <p class="text-gray-600 mt-3 max-w-2xl mx-auto">
-                        Tim kecil dengan fokus besar: membangun pengalaman presensi yang rapi, cepat, dan dapat diandalkan.
+                        Kelompok 3 (3KA15)
                     </p>
                 </div>
 
-                <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="0">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="0">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl font-bold text-blue-700">
                             AR
                         </div>
@@ -237,7 +273,7 @@
                         <p class="text-sm text-gray-500">Product Design</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-xl font-bold text-emerald-700">
                             DN
                         </div>
@@ -245,7 +281,7 @@
                         <p class="text-sm text-gray-500">Frontend Dev</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-xl font-bold text-amber-700">
                             KS
                         </div>
@@ -253,7 +289,7 @@
                         <p class="text-sm text-gray-500">Backend Dev</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center text-xl font-bold text-rose-700">
                             FR
                         </div>
@@ -261,7 +297,7 @@
                         <p class="text-sm text-gray-500">Data & QA</p>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center mx-auto w-full max-w-xs sm:col-span-2 lg:col-span-1 lg:col-start-3 reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-xl font-bold text-purple-700">
                             NP
                         </div>
@@ -277,57 +313,18 @@
     </body>
 
     <footer id="kontak" class="bg-white border-t border-gray-200 mt-20">
-        <div class="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-10 text-gray-700">
-
-            <div>
-            <div class="flex items-center space-x-2 mb-3">
-                <img src="{{ asset('images/logo-absenku.png') }}" alt="Logo AbsenKu" class="wd-10 h-10">
-                <span class="font-bold text-xl text-blue-700">AbsenKu</span>
+        <div class="max-w-7xl mx-auto px-6 py-10 text-gray-700">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div class="flex items-center space-x-2">
+                    <img src="{{ asset('images/logo-absenku.svg') }}" alt="Logo AbsenKu" class="w-10 h-10">
+                    <span class="font-bold text-xl text-blue-700">AbsenKu</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    © 2025 AbsenKu. All rights reserved.
+                </div>
             </div>
-            <p class="text-sm leading-relaxed text-gray-600 max-w-xs">
-                AbsenKu menyederhanakan pengelolaan absensi akademik untuk perguruan tinggi, menjamin efisiensi dan akurasi.
-            </p>
-
-            <div class="flex space-x-4 mt-4 text-gray-500 text-lg">
-                <a href="#" class="hover:text-gray-700"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="hover:text-gray-700"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="hover:text-gray-700"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="hover:text-gray-700"><i class="fab fa-linkedin"></i></a>
-            </div>
-            </div>
-
-            <div>
-            <h3 class="font-semibold mb-4">Perusahaan</h3>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-gray-900">Tentang kami</a></li>
-                <li><a href="#" class="hover:text-gray-900">Karir</a></li>
-                <li><a href="#" class="hover:text-gray-900">Media</a></li>
-            </ul>
-            </div>
-
-            <div>
-            <h3 class="font-semibold mb-4">Sumber daya</h3>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-gray-900">Blog</a></li>
-                <li><a href="#" class="hover:text-gray-900">Dukungan</a></li>
-                <li><a href="#" class="hover:text-gray-900">Pengembang</a></li>
-            </ul>
-            </div>
-
-            <div>
-            <h3 class="font-semibold mb-4">Bantuan</h3>
-            <ul class="space-y-2 text-sm">
-                <li><a href="#" class="hover:text-gray-900">Pusat bantuan</a></li>
-                <li><a href="#" class="hover:text-gray-900">Hubungi kami</a></li>
-            </ul>
-            </div>
-
         </div>
-
-    <div class="border-t border-gray-200 text-center py-4 text-sm text-gray-500">
-        © 2025 AbsenKu. All rights reserved.
-    </div>
-</footer>
+    </footer>
 
 <button id="scroll-to-top"
         type="button"
@@ -371,6 +368,28 @@
         }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
 
         animatedNodes.forEach((node) => observer.observe(node));
+    }
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            const isOpen = !mobileMenu.classList.contains('hidden');
+            if (isOpen) {
+                mobileMenu.classList.add('max-h-0', 'opacity-0');
+                mobileMenu.classList.remove('max-h-96', 'opacity-100');
+                window.setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                }, 300);
+            } else {
+                mobileMenu.classList.remove('hidden');
+                window.requestAnimationFrame(() => {
+                    mobileMenu.classList.remove('max-h-0', 'opacity-0');
+                    mobileMenu.classList.add('max-h-96', 'opacity-100');
+                });
+            }
+            mobileMenuButton.setAttribute('aria-expanded', String(!isOpen));
+        });
     }
 </script>
 

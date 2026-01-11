@@ -8,12 +8,16 @@ use App\Models\StudentProfile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class SocialAuthController extends Controller
 {
     // Mengalihkan ke provider sosial.
-    public function redirect()
+    public function redirect(Request $request)
     {
+        $intent = $request->query('intent', 'login');
+        $request->session()->put('auth_intent', $intent);
+
         return Socialite::driver('google')->redirect();
     }
 
@@ -24,7 +28,11 @@ class SocialAuthController extends Controller
 
         $user = User::where('email', $googleUser->getEmail())->first();
 
-        DB::transaction(function () use (&$user, $googleUser) {
+        $intent = session()->pull('auth_intent', 'login');
+
+        $createdNew = false;
+
+        DB::transaction(function () use (&$user, $googleUser, &$createdNew) {
             if (!$user) {
                 $user = User::create([
                     'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: 'Mahasiswa',
@@ -33,10 +41,17 @@ class SocialAuthController extends Controller
                     'email_verified_at' => now(),
                     'role' => 'student',
                 ]);
+                $createdNew = true;
             } elseif (!$user->role) {
                 $user->update([
                     'role' => 'student',
                 ]);
+            }
+
+            if (!$user->email_verified_at) {
+                $user->forceFill([
+                    'email_verified_at' => now(),
+                ])->save();
             }
 
             if ($user->role === 'student' && !$user->studentProfile) {
@@ -52,7 +67,7 @@ class SocialAuthController extends Controller
         });
 
         Auth::login($user);
-        if ($user->role === 'student') {
+        if ($intent === 'signup' || $createdNew) {
             return redirect()->route('profile.edit')
                 ->with('success', 'Login Google berhasil. Lengkapi data profil Anda.');
         }
