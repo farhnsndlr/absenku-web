@@ -71,9 +71,10 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
-
             $request->session()->regenerate();
             $user = Auth::user();
+            $this->invalidateOtherSessions($request, $user);
+            Auth::logoutOtherDevices($request->password);
 
             if ($user->role === 'student' && !$user->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice')
@@ -108,5 +109,17 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('landing');
+    }
+
+    private function invalidateOtherSessions(Request $request, User $user): void
+    {
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $user->id)
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
     }
 }
