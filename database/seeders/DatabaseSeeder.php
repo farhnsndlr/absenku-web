@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@absenku.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
+            'email_verified_at' => now(),
         ]);
         $this->command->info('✅ Admin account created.');
 
@@ -102,6 +103,7 @@ class DatabaseSeeder extends Seeder
                 'email' => $lec['email'],
                 'password' => Hash::make('password123'),
                 'role' => 'lecturer',
+                'email_verified_at' => now(),
             ]);
         }
         $this->command->info('✅ ' . count($lecturers) . ' lecturers created.');
@@ -172,6 +174,7 @@ class DatabaseSeeder extends Seeder
                 'email' => $s['email'],
                 'password' => Hash::make('password123'),
                 'role' => 'student',
+                'email_verified_at' => now(),
             ]);
 
             $studentProfiles[] = ['profile' => $profile, 'class' => $s['class']];
