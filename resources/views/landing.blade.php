@@ -269,40 +269,40 @@
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl font-bold text-blue-700">
                             AR
                         </div>
-                        <h4 class="mt-4 font-bold text-gray-900">Alya Rahma</h4>
-                        <p class="text-sm text-gray-500">Product Design</p>
+                        <h4 class="mt-4 font-bold text-gray-900">Abib Yolian</h4>
+                        <p class="text-sm text-gray-500">10123019</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-xl font-bold text-emerald-700">
                             DN
                         </div>
-                        <h4 class="mt-4 font-bold text-gray-900">Dimas Nugraha</h4>
-                        <p class="text-sm text-gray-500">Frontend Dev</p>
+                        <h4 class="mt-4 font-bold text-gray-900">Justin Putra Prajna</h4>
+                        <p class="text-sm text-gray-500">10123572</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-xl font-bold text-amber-700">
                             KS
                         </div>
-                        <h4 class="mt-4 font-bold text-gray-900">Kirana Sari</h4>
-                        <p class="text-sm text-gray-500">Backend Dev</p>
+                        <h4 class="mt-4 font-bold text-gray-900">Putra Daud Friendly</h4>
+                        <p class="text-sm text-gray-500">11123040</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center text-xl font-bold text-rose-700">
                             FR
                         </div>
-                        <h4 class="mt-4 font-bold text-gray-900">Fahri Ramadhan</h4>
-                        <p class="text-sm text-gray-500">Data & QA</p>
+                        <h4 class="mt-4 font-bold text-gray-900">T. Farhan Sultan Nadlir E.Q</h4>
+                        <p class="text-sm text-gray-500">11123304</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
                         <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-xl font-bold text-purple-700">
                             NP
                         </div>
-                        <h4 class="mt-4 font-bold text-gray-900">Nadia Putri</h4>
-                        <p class="text-sm text-gray-500">Project Lead</p>
+                        <h4 class="mt-4 font-bold text-gray-900">Topa Azka Ahada</h4>
+                        <p class="text-sm text-gray-500">11123317</p>
                     </div>
                 </div>
             </div>
