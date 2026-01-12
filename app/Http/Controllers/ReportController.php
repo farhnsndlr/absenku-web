@@ -84,7 +84,7 @@ class ReportController extends Controller
             'attendanceRecords.user'
         ])->findOrFail($sessionId);
 
-        if ($isLecturer && !in_array($session->course->lecturer_id, $this->lecturerAccessIds($user), true)) {
+        if ($isLecturer && !in_array((int) $session->course->lecturer_id, $this->lecturerAccessIds($user), true)) {
             abort(403, 'Anda tidak memiliki akses untuk melihat laporan sesi ini.');
         }
 
@@ -184,9 +184,13 @@ class ReportController extends Controller
 
     private function lecturerAccessIds(User $user): array
     {
-        return array_values(array_unique(array_filter([
+        $ids = array_filter([
             $user->id ?? null,
             $user->profile_id ?? null,
-        ])));
+        ], static fn($value) => $value !== null);
+
+        $ids = array_map('intval', $ids);
+
+        return array_values(array_unique($ids));
     }
 }
