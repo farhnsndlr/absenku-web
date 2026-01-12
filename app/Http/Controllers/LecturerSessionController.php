@@ -18,31 +18,31 @@ class LecturerSessionController extends Controller
     // Menampilkan daftar sesi milik dosen.
     public function index()
     {
-        $lecturerId = Auth::id();
+        $lecturerIds = $this->lecturerAccessIds();
 
-        $sessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
-            $query->where('lecturer_id', $lecturerId);
+        $sessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerIds) {
+            $query->whereIn('lecturer_id', $lecturerIds);
         })
             ->with(['course', 'location'])
             ->orderBy('session_date', 'desc')
             ->orderBy('start_time', 'desc')
             ->paginate(10);
 
-        $totalCourses = Course::where('lecturer_id', $lecturerId)->count();
+        $totalCourses = Course::whereIn('lecturer_id', $lecturerIds)->count();
 
-        $totalSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
-            $query->where('lecturer_id', $lecturerId);
+        $totalSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerIds) {
+            $query->whereIn('lecturer_id', $lecturerIds);
         })->count();
 
-        $upcomingSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
-            $query->where('lecturer_id', $lecturerId);
+        $upcomingSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerIds) {
+            $query->whereIn('lecturer_id', $lecturerIds);
         })
             ->where('session_date', '>=', now()->toDateString())
             ->where('status', 'scheduled')
             ->count();
 
-        $completedSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerId) {
-            $query->where('lecturer_id', $lecturerId);
+        $completedSessions = AttendanceSession::whereHas('course', function ($query) use ($lecturerIds) {
+            $query->whereIn('lecturer_id', $lecturerIds);
         })
             ->where('status', 'completed')
             ->count();
@@ -59,9 +59,9 @@ class LecturerSessionController extends Controller
     // Menampilkan form pembuatan sesi.
     public function create()
     {
-        $lecturerId = Auth::id();
+        $lecturerIds = $this->lecturerAccessIds();
 
-        $myCourses = Course::where('lecturer_id', $lecturerId)
+        $myCourses = Course::whereIn('lecturer_id', $lecturerIds)
             ->with('location')
             ->orderBy('course_name')
             ->get();
@@ -134,7 +134,7 @@ class LecturerSessionController extends Controller
     // Menampilkan detail dan rekap sesi.
     public function show(AttendanceSession $session)
     {
-        if ($session->course->lecturer_id !== Auth::id()) {
+        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -149,7 +149,7 @@ class LecturerSessionController extends Controller
             ? round(($presentCount / $totalStudents) * 100, 2)
             : 0;
 
-        $totalCourses = Course::where('lecturer_id', Auth::id())->count();
+        $totalCourses = Course::whereIn('lecturer_id', $this->lecturerAccessIds())->count();
 
         return view('lecturer.sessions.show', compact(
             'session',
@@ -168,7 +168,7 @@ class LecturerSessionController extends Controller
         $session = AttendanceSession::with(['course', 'location'])
             ->findOrFail($id);
         $locations = Location::all();
-        $courses = Course::where('lecturer_id', Auth::user()->id)->get();
+        $courses = Course::whereIn('lecturer_id', $this->lecturerAccessIds())->get();
 
         return view('lecturer.sessions.edit', compact('session', 'locations', 'courses'));
     }
@@ -178,7 +178,7 @@ class LecturerSessionController extends Controller
     {
         $session = AttendanceSession::with('course')->findOrFail($id);
 
-        if ($session->course->lecturer_id !== Auth::id()) {
+        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -231,7 +231,7 @@ class LecturerSessionController extends Controller
     // Menghapus sesi.
     public function destroy(AttendanceSession $session)
     {
-        if ($session->course->lecturer_id !== Auth::id()) {
+        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -239,5 +239,15 @@ class LecturerSessionController extends Controller
 
         return redirect()->route('lecturer.sessions.index')
             ->with('success', 'Sesi kelas berhasil dihapus.');
+    }
+
+    private function lecturerAccessIds(): array
+    {
+        $user = Auth::user();
+
+        return array_values(array_unique(array_filter([
+            $user?->id,
+            $user?->profile_id,
+        ])));
     }
 }
