@@ -20,14 +20,15 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $isLecturer = $user->role === 'lecturer';
+        $lecturerIds = $isLecturer ? $this->lecturerAccessIds($user) : [];
 
         $query = AttendanceSession::with(['course', 'location']);
 
         $this->applyFilters($query, $request);
 
         if ($isLecturer) {
-            $query->whereHas('course', function (Builder $q) use ($user) {
-                $q->where('lecturer_id', $user->id);
+            $query->whereHas('course', function (Builder $q) use ($lecturerIds) {
+                $q->whereIn('lecturer_id', $lecturerIds);
             });
         } else {
             if ($request->filled('lecturer_id')) {
@@ -42,15 +43,15 @@ class ReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $statistics = $this->calculateStatistics($request, $isLecturer, $user->id);
+        $statistics = $this->calculateStatistics($request, $isLecturer, $lecturerIds);
 
         $coursesQuery = Course::orderBy('course_name');
         $classNamesQuery = AttendanceSession::distinct()->orderBy('class_name');
 
         if ($isLecturer) {
-            $coursesQuery->where('lecturer_id', $user->id);
-            $classNamesQuery->whereHas('course', function ($q) use ($user) {
-                $q->where('lecturer_id', $user->id);
+            $coursesQuery->whereIn('lecturer_id', $lecturerIds);
+            $classNamesQuery->whereHas('course', function ($q) use ($lecturerIds) {
+                $q->whereIn('lecturer_id', $lecturerIds);
             });
             $lecturers = collect();
         } else {
@@ -83,7 +84,7 @@ class ReportController extends Controller
             'attendanceRecords.user'
         ])->findOrFail($sessionId);
 
-        if ($isLecturer && $session->course->lecturer_id !== $user->id) {
+        if ($isLecturer && !in_array($session->course->lecturer_id, $this->lecturerAccessIds($user), true)) {
             abort(403, 'Anda tidak memiliki akses untuk melihat laporan sesi ini.');
         }
 
@@ -141,15 +142,15 @@ class ReportController extends Controller
         }
     }
 
-    private function calculateStatistics(Request $request, $isLecturer, $lecturerId)
+    private function calculateStatistics(Request $request, $isLecturer, array $lecturerIds)
     {
         $query = AttendanceSession::query();
 
         $this->applyFilters($query, $request);
 
         if ($isLecturer) {
-            $query->whereHas('course', function ($q) use ($lecturerId) {
-                $q->where('lecturer_id', $lecturerId);
+            $query->whereHas('course', function ($q) use ($lecturerIds) {
+                $q->whereIn('lecturer_id', $lecturerIds);
             });
         } elseif ($request->filled('lecturer_id')) {
             $query->whereHas('course', function ($q) use ($request) {
@@ -179,5 +180,13 @@ class ReportController extends Controller
             'online_sessions' => $onlineSessions,
             'offline_sessions' => $offlineSessions,
         ];
+    }
+
+    private function lecturerAccessIds(User $user): array
+    {
+        return array_values(array_unique(array_filter([
+            $user->id ?? null,
+            $user->profile_id ?? null,
+        ])));
     }
 }
