@@ -134,7 +134,7 @@ class LecturerSessionController extends Controller
     // Menampilkan detail dan rekap sesi.
     public function show(AttendanceSession $session)
     {
-        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
+        if (!in_array((int) $session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -178,7 +178,7 @@ class LecturerSessionController extends Controller
     {
         $session = AttendanceSession::with('course')->findOrFail($id);
 
-        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
+        if (!in_array((int) $session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -231,7 +231,7 @@ class LecturerSessionController extends Controller
     // Menghapus sesi.
     public function destroy(AttendanceSession $session)
     {
-        if (!in_array($session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
+        if (!in_array((int) $session->course->lecturer_id, $this->lecturerAccessIds(), true)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -245,9 +245,13 @@ class LecturerSessionController extends Controller
     {
         $user = Auth::user();
 
-        return array_values(array_unique(array_filter([
+        $ids = array_filter([
             $user?->id,
             $user?->profile_id,
-        ])));
+        ], static fn($value) => $value !== null);
+
+        $ids = array_map('intval', $ids);
+
+        return array_values(array_unique($ids));
     }
 }
