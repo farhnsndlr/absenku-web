@@ -43,7 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return Attribute::make(
             get: function (mixed $value, array $attributes) {
                 if (isset($attributes['profile_photo_path']) && $attributes['profile_photo_path']) {
-                    return Storage::url($attributes['profile_photo_path']);
+                    return Storage::disk('public')->url($attributes['profile_photo_path']);
                 }
 
                 return null;

@@ -102,7 +102,7 @@
              <div class="absolute top-4 right-4 text-red-500 bg-red-50 p-2 rounded-lg">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
-            <p class="text-sm font-medium text-gray-500 mb-1">Alpa (Tanpa Keterangan)</p>
+            <p class="text-sm font-medium text-gray-500 mb-1">Alpa</p>
             <h3 class="text-3xl font-bold text-gray-900">{{ $stats['absent'] }}</h3>
             <p class="text-xs text-gray-400 mt-1">Sesi pertemuan</p>
         </div>
