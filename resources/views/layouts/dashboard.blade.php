@@ -127,7 +127,7 @@
                             x-transition:leave="transition ease-in duration-75"
                             x-transition:leave-start="transform opacity-100 scale-100"
                             x-transition:leave-end="transform opacity-0 scale-95"
-                            class="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-96 overflow-y-auto"
+                            class="absolute left-1/2 z-50 mt-2 w-[calc(100vw-2rem)] max-w-[22rem] -translate-x-1/2 origin-top rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-[70vh] overflow-y-auto sm:left-auto sm:right-0 sm:w-80 sm:translate-x-0 sm:origin-top-right"
                             x-cloak>
 
                             <div class="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
