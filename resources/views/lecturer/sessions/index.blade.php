@@ -97,8 +97,10 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @php
                                     $now = \Carbon\Carbon::now();
-                                    $isOngoing = $session->status === 'open' && $now->between($session->start_time, $session->end_time);
-                                    $isFinished = $session->status === 'closed' || $now->greaterThan($session->end_time);
+                                    $startAt = $session->start_date_time;
+                                    $endAt = $session->end_date_time;
+                                    $isOngoing = $session->status === 'open' && $now->between($startAt, $endAt);
+                                    $isFinished = $session->status === 'closed' || $now->greaterThan($endAt);
                                 @endphp
 
                                 @if($isOngoing)
