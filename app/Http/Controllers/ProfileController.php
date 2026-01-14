@@ -264,10 +264,11 @@ class ProfileController extends Controller
         $validatedData = $request->validated();
 
         if ($request->hasFile('photo')) {
+            $publicRoot = config('app.public_html_path') ?: public_path();
             if ($user->profile_photo_path) {
                 $oldPath = $user->profile_photo_path;
                 if (str_starts_with($oldPath, 'images/')) {
-                    $oldFullPath = public_path($oldPath);
+                    $oldFullPath = rtrim($publicRoot, '/').'/'.ltrim($oldPath, '/');
                     if (File::exists($oldFullPath)) {
                         File::delete($oldFullPath);
                     }
@@ -277,7 +278,7 @@ class ProfileController extends Controller
             }
             $photo = $request->file('photo');
             $directory = 'images/profile';
-            $absoluteDirectory = public_path($directory);
+            $absoluteDirectory = rtrim($publicRoot, '/').'/'.ltrim($directory, '/');
             File::ensureDirectoryExists($absoluteDirectory);
             $filename = Str::uuid()->toString() . '.' . $photo->getClientOriginalExtension();
             $photo->move($absoluteDirectory, $filename);
