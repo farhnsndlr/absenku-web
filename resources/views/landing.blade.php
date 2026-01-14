@@ -260,7 +260,7 @@
                 <div class="text-center mb-10 reveal" data-animate>
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Team Kami</h2>
                     <p class="text-gray-600 mt-3 max-w-2xl mx-auto">
-                        Kelompok 3 (3KA15)
+                        Kelompok 3
                     </p>
                 </div>
 
@@ -268,31 +268,31 @@
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="0">
                         <img src="{{ asset('images/teams/abib.jpeg') }}" alt="Abib Yolian" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Abib Yolian</h4>
-                        <p class="text-sm text-gray-500">10123019</p>
+                        <p class="text-sm text-gray-500">Frontend</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
                         <img src="{{ asset('images/teams/justin.jpeg') }}" alt="Justin Putra Prajna" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Justin Putra Prajna</h4>
-                        <p class="text-sm text-gray-500">10123572</p>
+                        <p class="text-sm text-gray-500">Frontend</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
                         <img src="{{ asset('images/teams/daud.jpeg') }}" alt="Putra Daud Friendly" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Putra Daud Friendly</h4>
-                        <p class="text-sm text-gray-500">11123040</p>
+                        <p class="text-sm text-gray-500">UI/UX</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
                         <img src="{{ asset('images/teams/farhan.jpeg') }}" alt="T. Farhan Sultan Nadlir E.Q" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">T. Farhan Sultan Nadlir E.Q</h4>
-                        <p class="text-sm text-gray-500">11123304</p>
+                        <p class="text-sm text-gray-500">Fullstack Lead</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
                         <img src="{{ asset('images/teams/topa.jpeg') }}" alt="Topa Azka Ahada" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Topa Azka Ahada</h4>
-                        <p class="text-sm text-gray-500">11123317</p>
+                        <p class="text-sm text-gray-500">QA Tester</p>
                     </div>
                 </div>
             </div>
