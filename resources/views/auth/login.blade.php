@@ -85,7 +85,7 @@
                             type="email"
                             name="email"
                             value="{{ old('email') }}"
-                            placeholder="admin@admin.com"
+                            placeholder="johndoe@google.com"
                             required
                             autofocus
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 @error('email') border-red-400 @enderror"
