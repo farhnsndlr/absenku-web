@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Models\LecturerProfile;
 use App\Models\StudentProfile;
 use App\Http\Requests\ProfileUpdateRequest;
@@ -263,10 +265,23 @@ class ProfileController extends Controller
 
         if ($request->hasFile('photo')) {
             if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
+                $oldPath = $user->profile_photo_path;
+                if (str_starts_with($oldPath, 'images/')) {
+                    $oldFullPath = public_path($oldPath);
+                    if (File::exists($oldFullPath)) {
+                        File::delete($oldFullPath);
+                    }
+                } else {
+                    Storage::disk('public')->delete($oldPath);
+                }
             }
-            $path = $request->file('photo')->store('profile-photos', 'public');
-            $validatedData['profile_photo_path'] = $path;
+            $photo = $request->file('photo');
+            $directory = 'images/profile';
+            $absoluteDirectory = public_path($directory);
+            File::ensureDirectoryExists($absoluteDirectory);
+            $filename = Str::uuid()->toString() . '.' . $photo->getClientOriginalExtension();
+            $photo->move($absoluteDirectory, $filename);
+            $validatedData['profile_photo_path'] = $directory . '/' . $filename;
         }
 
         if ($validatedData['email'] !== $user->email) {
