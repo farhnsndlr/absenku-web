@@ -266,41 +266,31 @@
 
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="0">
-                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xl font-bold text-blue-700">
-                            AR
-                        </div>
+                        <img src="{{ asset('images/teams/abib.jpeg') }}" alt="Abib Yolian" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Abib Yolian</h4>
                         <p class="text-sm text-gray-500">10123019</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="120">
-                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-xl font-bold text-emerald-700">
-                            DN
-                        </div>
+                        <img src="{{ asset('images/teams/justin.jpeg') }}" alt="Justin Putra Prajna" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Justin Putra Prajna</h4>
                         <p class="text-sm text-gray-500">10123572</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="240">
-                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-xl font-bold text-amber-700">
-                            KS
-                        </div>
+                        <img src="{{ asset('images/teams/daud.jpeg') }}" alt="Putra Daud Friendly" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Putra Daud Friendly</h4>
                         <p class="text-sm text-gray-500">11123040</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="360">
-                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center text-xl font-bold text-rose-700">
-                            FR
-                        </div>
+                        <img src="{{ asset('images/teams/farhan.jpeg') }}" alt="T. Farhan Sultan Nadlir E.Q" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">T. Farhan Sultan Nadlir E.Q</h4>
                         <p class="text-sm text-gray-500">11123304</p>
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-lg p-6 text-center w-full h-full flex flex-col items-center reveal transition duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl" data-animate data-delay="480">
-                        <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-xl font-bold text-purple-700">
-                            NP
-                        </div>
+                        <img src="{{ asset('images/teams/topa.jpeg') }}" alt="Topa Azka Ahada" class="mx-auto w-24 h-24 rounded-full object-cover bg-gray-100">
                         <h4 class="mt-4 font-bold text-gray-900">Topa Azka Ahada</h4>
                         <p class="text-sm text-gray-500">11123317</p>
                     </div>
