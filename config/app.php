@@ -86,6 +86,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public HTML Path
+    |--------------------------------------------------------------------------
+    |
+    | Override public_path() when the web root lives outside the Laravel
+    | app directory (e.g. cPanel main domain in public_html).
+    |
+    */
+
+    'public_html_path' => env('PUBLIC_HTML_PATH'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
