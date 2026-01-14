@@ -3,6 +3,16 @@
 @section('page-title', 'Jadwalkan Sesi Absensi Baru')
 
 @section('content')
+<style>
+    @media (max-width: 640px) {
+        .input-stretch[type="date"],
+        .input-stretch[type="time"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+    }
+</style>
 <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8"
     x-data="{
        selectedCourseId: '{{ old('course_id') }}',
@@ -67,7 +77,7 @@
                 <label for="session_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
                 <input type="date" name="session_date" id="session_date" value="{{ old('session_date', date('Y-m-d')) }}" required
                     style="width: 100%; min-width: 0;"
-                    class="block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('session_date') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                    class="input-stretch block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('session_date') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                 @error('session_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -77,7 +87,7 @@
                     <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai <span class="text-red-500">*</span></label>
                     <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}" required
                         style="width: 100%; min-width: 0;"
-                        class="block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('start_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                        class="input-stretch block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('start_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                     @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 {{-- Jam Selesai --}}
@@ -85,7 +95,7 @@
                     <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai <span class="text-red-500">*</span></label>
                     <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}" required
                         style="width: 100%; min-width: 0;"
-                        class="block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('end_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                        class="input-stretch block w-full appearance-none rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('end_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                     @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
