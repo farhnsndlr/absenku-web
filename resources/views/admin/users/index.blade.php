@@ -57,6 +57,7 @@
                 <thead class="bg-gray-50 text-gray-500 font-medium uppercase tracking-wider">
                     <tr>
                         <th class="px-6 py-3">Nama / Email</th>
+                        <th class="px-6 py-3">NPM</th>
                         <th class="px-6 py-3">Role & ID</th>
                         <th class="px-6 py-3">Bergabung</th>
                         <th class="px-6 py-3 text-right">Aksi</th>
@@ -74,11 +75,15 @@
                                     <div>
                                         <p class="font-bold text-gray-900">{{ $user->name }}</p>
                                         <p class="text-gray-500">{{ $user->email }}</p>
-                                        @if($user->role === 'student' && $user->profile?->npm)
-                                            <p class="text-xs text-gray-500">NPM: {{ $user->profile->npm }}</p>
-                                        @endif
                                     </div>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">
+                                @if($user->role === 'student' && $user->profile?->npm)
+                                    {{ $user->profile->npm }}
+                                @else
+                                    -
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 {{-- Badge Role --}}
