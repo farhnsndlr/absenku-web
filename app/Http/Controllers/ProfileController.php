@@ -307,6 +307,10 @@ class ProfileController extends Controller
             return !is_null($value) && $value !== '';
         });
 
+        if ($user->profile) {
+            $profileData['full_name'] = $validatedData['name'];
+        }
+
         if (!empty($profileData)) {
             $user->profile()->update($profileData);
         }
