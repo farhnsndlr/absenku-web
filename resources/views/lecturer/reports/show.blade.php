@@ -124,12 +124,26 @@
             @forelse($records as $rec)
                 <tr class="border-t hover:bg-gray-50">
 
+                    @php
+                        $studentProfile = $rec->student;
+                        $studentUser = $studentProfile?->user ?? $rec->user;
+                        $studentName = $studentProfile?->full_name
+                            ?? $studentUser?->profile?->full_name
+                            ?? $studentUser?->name;
+                        $studentNpm = $studentProfile?->npm
+                            ?? $studentUser?->profile?->npm;
+                    @endphp
+
                     {{-- NPM: Jika student null, tampilkan '-' --}}
-                    <td class="p-3 font-medium">{{ $rec->user?->npm ?? '-' }}</td>
+                    <td class="p-3 font-medium">{{ $studentNpm ?? '-' }}</td>
 
                     {{-- Nama: Cek full_name, jika tidak ada cek user->name, jika student null tampilkan pesan --}}
                     <td class="p-3">
-                        {{ $rec->user?->name ?? '<span class="text-red-500 italic">Data Mahasiswa Hilang</span>' }}
+                        @if($studentName)
+                            {{ $studentName }}
+                        @else
+                            <span class="text-red-500 italic">Data Mahasiswa Hilang</span>
+                        @endif
                     </td>
 
                     <td class="p-3">

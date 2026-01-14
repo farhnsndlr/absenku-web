@@ -81,7 +81,8 @@ class ReportController extends Controller
         $session = AttendanceSession::with([
             'course',
             'location',
-            'attendanceRecords.user'
+            'attendanceRecords.user',
+            'attendanceRecords.student.user',
         ])->findOrFail($sessionId);
 
         if ($isLecturer && !in_array((int) $session->course->lecturer_id, $this->lecturerAccessIds($user), true)) {

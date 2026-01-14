@@ -62,8 +62,8 @@
                 <label for="class_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas <span class="text-red-500">*</span></label>
                 <input type="text" name="class_name" id="class_name" value="{{ old('class_name') }}" required
                     class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('class_name') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}"
-                    placeholder="Contoh: 3KA15 atau Grup A">
-                <p class="text-xs text-gray-500 mt-1">Masukkan identitas kelas atau grup mahasiswa untuk sesi ini.</p>
+                    placeholder="Contoh: 3KA15">
+                <p class="text-xs text-gray-500 mt-1">Masukkan identitas kelas atau untuk sesi ini.</p>
                 @error('class_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
