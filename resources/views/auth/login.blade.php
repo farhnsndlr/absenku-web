@@ -125,11 +125,14 @@
                 </div>
 
                 <!-- Remember Me -->
-                <div class="flex items-center">
+                <div class="flex items-center justify-between">
                     <label class="flex items-center cursor-pointer group">
                         <input type="checkbox" name="remember" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition cursor-pointer">
                         <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
                     </label>
+                    <a href="{{ route('password.request') }}" class="text-sm text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                        Lupa password?
+                    </a>
                 </div>
 
                 <!-- Tombol Masuk -->
