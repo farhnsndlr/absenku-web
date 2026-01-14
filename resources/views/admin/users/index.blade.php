@@ -37,7 +37,7 @@
                 </select>
                 {{-- Input Search --}}
                 <div class="relative flex-1">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 pl-10 text-sm">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, email, atau NPM..." class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 pl-10 text-sm">
                     <svg class="w-5 h-5 text-gray-400 absolute top-2.5 left-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium">Cari</button>
@@ -74,6 +74,9 @@
                                     <div>
                                         <p class="font-bold text-gray-900">{{ $user->name }}</p>
                                         <p class="text-gray-500">{{ $user->email }}</p>
+                                        @if($user->role === 'student' && $user->profile?->npm)
+                                            <p class="text-xs text-gray-500">NPM: {{ $user->profile->npm }}</p>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
