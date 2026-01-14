@@ -34,7 +34,7 @@
             <div>
                 <label for="course_id" class="block text-sm font-medium text-gray-700 mb-2">Mata Kuliah <span class="text-red-500">*</span></label>
                 <select name="course_id" id="course_id" x-model="selectedCourseId" @change="updateDefaults()" required
-                    class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('course_id') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                    class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('course_id') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                     <option value="">-- Pilih Mata Kuliah --</option>
                     @foreach($myCourses as $course)
                         <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
@@ -51,7 +51,7 @@
             <div>
                 <label for="class_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Kelas <span class="text-red-500">*</span></label>
                 <input type="text" name="class_name" id="class_name" value="{{ old('class_name') }}" required
-                    class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('class_name') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}"
+                    class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('class_name') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}"
                     placeholder="Contoh: 3KA15 atau Grup A">
                 <p class="text-xs text-gray-500 mt-1">Masukkan identitas kelas atau grup mahasiswa untuk sesi ini.</p>
                 @error('class_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -66,7 +66,7 @@
             <div>
                 <label for="session_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
                 <input type="date" name="session_date" id="session_date" value="{{ old('session_date', date('Y-m-d')) }}" required
-                    class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('session_date') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                    class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('session_date') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                 @error('session_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -75,14 +75,14 @@
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai <span class="text-red-500">*</span></label>
                     <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}" required
-                        class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('start_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                        class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('start_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                     @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 {{-- Jam Selesai --}}
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai <span class="text-red-500">*</span></label>
                     <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}" required
-                        class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('end_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                        class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('end_time') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                     @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
@@ -95,7 +95,7 @@
                 {{-- Tambahkan min="0" --}}
                 <input type="number" min="0" name="late_tolerance_minutes" id="late_tolerance_minutes"
                     value="{{ old('late_tolerance_minutes', 10) }}" required
-                    class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('late_tolerance_minutes') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                    class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('late_tolerance_minutes') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                 <p class="text-xs text-gray-500 mt-1">Mahasiswa dianggap terlambat setelah melewati batas waktu ini dari jam mulai.</p>
                 @error('late_tolerance_minutes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
@@ -110,7 +110,7 @@
             <div>
                 <label for="topic" class="block text-sm font-medium text-gray-700 mb-2">Topik Pembahasan (Opsional)</label>
                 <input type="text" name="topic" id="topic" value="{{ old('topic') }}"
-                    class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('topic') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}"
+                    class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('topic') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}"
                     placeholder="Contoh: Pertemuan 6 : Clustering dan Klasifikasi">
                 @error('topic') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
@@ -138,7 +138,7 @@
                     <label for="location_id" class="block text-sm font-medium text-gray-700 mb-2">Lokasi Kampus / Ruangan <span class="text-red-500">*</span></label>
                     {{-- Binding :required agar HTML5 validation hanya aktif jika offline --}}
                     <select name="location_id" id="location_id" :required="sessionType === 'offline'"
-                        class="w-full rounded-lg shadow-sm py-2.5 px-4 {{ $errors->has('location_id') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                        class="w-full rounded-lg border bg-white shadow-sm py-2.5 px-4 {{ $errors->has('location_id') ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
                         <option value="">-- Pilih Lokasi --</option>
                         @foreach($locations as $location)
                             <option value="{{ $location->id }}" {{ old('location_id') == $location->id ? 'selected' : '' }}>
