@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\AttendanceRecord;
+use App\Models\StudentProfile;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -75,7 +76,7 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
         $query->with([
             'session.course',
             'session.location',
-            'user'
+            'student.user',
         ]);
 
         $query->orderBy(
@@ -83,8 +84,8 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
                 ->whereColumn('attendance_sessions.id', 'attendance_records.session_id'),
             'desc'
         )->orderBy(
-            \App\Models\User::select('name')
-                ->whereColumn('users.id', 'attendance_records.student_id'),
+            StudentProfile::select('full_name')
+                ->whereColumn('student_profiles.id', 'attendance_records.student_id'),
             'asc'
         );
 
@@ -95,17 +96,18 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
     public function headings(): array
     {
         return [
-            'Tanggal Sesi',
-            'Jam Sesi',
+            'NPM Mahasiswa',
+            'Nama Mahasiswa',
             'Mata Kuliah',
             'Kode MK',
             'Nama Kelas',
+            'Tanggal Sesi',
+            'Jam Sesi',
             'Tipe Sesi',
             'Lokasi Kampus',
-            'NPM Mahasiswa',
-            'Nama Mahasiswa',
             'Status Kehadiran',
             'Waktu Submit Absen',
+            'Bukti Foto',
             'Mode Absen (Lokasi)',
             'Koordinat Absen',
         ];
@@ -120,22 +122,26 @@ class AttendanceReportExport implements FromCollection, WithHeadings, WithMappin
         $endTime = $record->session->end_time instanceof Carbon ? $record->session->end_time->format('H:i') : $record->session->end_time;
         $submissionTime = $record->submission_time instanceof Carbon ? $record->submission_time->format('H:i:s') : ($record->submission_time ?? '-');
 
-        $npm = $record->user?->npm ?? $record->user?->id ?? '-';
+        $studentProfile = $record->student;
+        $studentUser = $studentProfile?->user;
+        $npm = $studentProfile?->npm ?? '-';
+        $studentName = $studentProfile?->full_name ?? $studentUser?->name ?? '-';
 
-        $sessionType = $record->session->session_type;
+        $sessionType = $record->session->learning_type ?? $record->session->session_type;
 
         return [
-            $sessionDate,
-            $startTime . ' - ' . $endTime,
+            $npm,
+            $studentName,
             $record->session->course->course_name ?? '-',
             $record->session->course->course_code ?? '-',
             $record->session->class_name ?? '-',
+            $sessionDate,
+            $startTime . ' - ' . $endTime,
             $sessionType ? ucfirst($sessionType) : '-',
             $record->session->location->location_name ?? ($sessionType == 'online' ? 'Online (Daring)' : '-'),
-            $npm,
-            $record->user?->name ?? '-',
             $this->formatStatus($record->status),
             $submissionTime,
+            $record->photo_path ? route('attendance.media', $record->photo_path) : '-',
             ucfirst($record->learning_type),
             $record->location_maps ?? '-',
         ];
