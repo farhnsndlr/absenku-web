@@ -15,6 +15,15 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if ($user->profile) {
+                $user->profile->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'email',
