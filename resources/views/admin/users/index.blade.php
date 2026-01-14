@@ -58,7 +58,8 @@
                     <tr>
                         <th class="px-6 py-3">Nama / Email</th>
                         <th class="px-6 py-3">NPM</th>
-                        <th class="px-6 py-3">Role & ID</th>
+                        <th class="px-6 py-3">Kelas</th>
+                        <th class="px-6 py-3">Role</th>
                         <th class="px-6 py-3">Bergabung</th>
                         <th class="px-6 py-3 text-right">Aksi</th>
                     </tr>
@@ -85,6 +86,13 @@
                                     -
                                 @endif
                             </td>
+                            <td class="px-6 py-4 text-gray-500">
+                                @if($user->role === 'student' && $user->profile?->class_name)
+                                    {{ $user->profile->class_name }}
+                                @else
+                                    -
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 {{-- Badge Role --}}
                                 <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -92,17 +100,6 @@
                                       ($user->role === 'lecturer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
                                     {{ ucfirst($user->role) }}
                                 </span>
-                                {{-- NID/NPM jika ada --}}
-                                @if($user->profile)
-                                    <p class="text-xs text-gray-500 mt-1">
-                                        ID: {{ $user->profile->nid ?? $user->profile->npm ?? '-' }}
-                                    </p>
-                                    @if($user->role === 'student')
-                                        <p class="text-xs text-gray-500">
-                                            Kelas: {{ $user->profile->class_name ?? '-' }}
-                                        </p>
-                                    @endif
-                                @endif
                             </td>
                             <td class="px-6 py-4 text-gray-500">
                                 {{ $user->created_at->translatedFormat('d M Y') }}
