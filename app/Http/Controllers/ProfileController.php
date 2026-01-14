@@ -264,7 +264,19 @@ class ProfileController extends Controller
         $validatedData = $request->validated();
 
         if ($request->hasFile('photo')) {
-            $publicRoot = config('app.public_html_path') ?: public_path();
+            $publicRoot = env('PUBLIC_HTML_PATH');
+            if (!$publicRoot) {
+                $basePath = base_path();
+                if (preg_match('#^/home/([^/]+)/#', $basePath, $matches)) {
+                    $candidate = '/home/' . $matches[1] . '/public_html';
+                    if (File::isDirectory($candidate)) {
+                        $publicRoot = $candidate;
+                    }
+                }
+            }
+            if (!$publicRoot) {
+                $publicRoot = public_path();
+            }
             if ($user->profile_photo_path) {
                 $oldPath = $user->profile_photo_path;
                 if (str_starts_with($oldPath, 'images/')) {
