@@ -4,6 +4,14 @@
 @section('page-title', 'Edit Jadwal Sesi Absensi')
 
 @section('content')
+<style>
+    .input-stretch[type="date"],
+    .input-stretch[type="time"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+</style>
 
 @if ($errors->any())
         <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
@@ -58,7 +66,7 @@
                 <label for="session_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Kelas <span class="text-red-500">*</span></label>
                 <input type="date" name="session_date" id="session_date"
                        value="{{ old('session_date', $session->session_date->format('Y-m-d')) }}" required
-                       class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
+                       class="input-stretch block w-full appearance-none rounded-lg border bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
                 @error('session_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -67,7 +75,7 @@
                     <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai <span class="text-red-500">*</span></label>
                     <input type="time" name="start_time" id="start_time"
                            value="{{ old('start_time', $session->start_time->format('H:i')) }}" required
-                           class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
+                           class="input-stretch block w-full appearance-none rounded-lg border bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
                     @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -75,7 +83,7 @@
                     <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai <span class="text-red-500">*</span></label>
                     <input type="time" name="end_time" id="end_time"
                            value="{{ old('end_time', $session->end_time->format('H:i')) }}" required
-                           class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
+                           class="input-stretch block w-full appearance-none rounded-lg border bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2.5 px-4">
                     @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
