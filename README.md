@@ -1,59 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 AbsenKu (Monolith Edition)
+### Sistem Absensi Perkuliahan Cerdas Berbasis Geofencing & Wajah
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Project Banner](https://placehold.co/1200x400/3b82f6/ffffff?text=AbsenKu+Project+Banner&font=roboto)
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> **Status Proyek:** 🔥 Dalam Pengembangan Aktif | **Target Rilis:** Vercel & Railway
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**AbsenKu** adalah solusi modern untuk mendigitalkan kehadiran di lingkungan kampus. Lupakan titip absen! Sistem kami memvalidasi kehadiran mahasiswa secara *real-time* menggunakan kombinasi **Lokasi GPS (Geofencing)** dan **Bukti Foto Wajah**.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Dibangun dengan arsitektur **Monolithic Laravel** yang tangguh, proyek ini mengutamakan kecepatan pengembangan dan kemudahan *deployment* tanpa mengorbankan fitur canggih.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# ✨ Fitur Unggulan
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Kami merancang pengalaman pengguna yang spesifik untuk setiap peran di kampus.
 
-## Laravel Sponsors
+## 🎓 Mahasiswa: Cepat & Akurat (Mobile-First)
+* **📱 Dashboard Ringkas:** Akses cepat ke ringkasan kehadiran dan daftar sesi kuliah yang sedang aktif hari ini.
+* **📸 Smart Check-in:** Presensi satu tombol yang terintegrasi langsung dengan kamera dan GPS smartphone.
+* **📍 Geofence Validator:** Sistem otomatis menolak presensi jika mahasiswa berada di luar radius lokasi kampus yang ditentukan dosen (untuk sesi onsite).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 👨‍🏫 Dosen: Kendali Penuh Sesi
+* **📅 Manajemen Sesi Fleksibel:** Buat sesi perkuliahan tipe **Onsite** (wajib di lokasi) atau **Online** (bebas lokasi).
+* **📊 Monitoring Real-time:** Pantau siapa yang sudah hadir, lengkap dengan bukti foto dan lokasi mereka saat absen.
 
-### Premium Partners
+## 👮‍♂️ Admin: Manajemen Terpusat
+* **🏢 Master Data Control:** Kelola data Pengguna (Dosen/Mahasiswa), Mata Kuliah, dan titik koordinat Lokasi Kampus dengan mudah.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+# 🛠️ Di Balik Layar: Tech Stack
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Kami menggunakan kombinasi teknologi yang matang dan modern untuk performa maksimal.
 
-## Code of Conduct
+| Kategori | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Fullstack Framework** | ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Laravel 10/11 sebagai otak utama aplikasi (Backend logic, routing, ORM). |
+| **Frontend Engine** | ![Blade](https://img.shields.io/badge/Blade-FF2D20?style=flat-square&logo=laravel&logoColor=white) | Laravel Blade Templates untuk merender tampilan HTML di sisi server. |
+| **Styling** | ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Utility-first CSS framework untuk desain UI yang cepat, modern, dan responsif. |
+| **Database (Prod)** | ![MySQL](https://img.shields.io/badge/MySQL-005C84?style=flat-square&logo=mysql&logoColor=white) | Database relasional yang di-hosting di **Railway** (digunakan sejak development). |
+| **Media Storage** | ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=flat-square&logo=cloudinary&logoColor=white) | Penyimpanan cloud yang aman dan cepat untuk bukti foto kehadiran. |
+| **Hardware Access** | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | Native Browser API untuk mengakses Kamera dan Geolocation pengguna. |
+| **Deployment Target** | ![Vite](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) | Aplikasi akan di-deploy ke **Vercel** untuk performa global yang cepat. |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+# ⚙️ Panduan Instalasi Lokal (Getting Started)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Ikuti langkah ini untuk menjalankan proyek di komputer Anda.
 
-## License
+### Prasyarat
+* PHP >= 8.1 & Composer
+* Node.js & NPM
+* Git
+* Koneksi Internet Stabil (Wajib untuk akses Database Railway & Cloudinary)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Langkah-langkah
+
+1.  **Clone Repositori**
+    ```bash
+    git clone [https://github.com/farhnsndlr/absenku-monolith.git](https://github.com/farhnsndlr/absenku-monolith.git)
+    cd absenku-monolith
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    composer install && npm install
+    ```
+
+3.  **Konfigurasi Environment (.env)**
+    Salin file contoh dan generate key.
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+    > **🚨 PENTING:** Buka file `.env`. Anda **WAJIB** meminta kredensial berikut kepada Project Lead (Farhan) dan mengisinya agar aplikasi bisa berjalan:
+    > * `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (Koneksi Railway)
+    > * `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+4.  **Setup Database (Remote)**
+    Karena menggunakan database remote, perintah ini akan mereset dan mengisi data di server Railway.
+    ```bash
+    php artisan migrate:fresh --seed
+    ```
+
+5.  **Jalankan Aplikasi**
+    Jalankan dua terminal terpisah:
+    *Terminal 1 (Laravel):* `php artisan serve`
+    *Terminal 2 (Vite):* `npm run dev`
+    Akses di `http://localhost:8000`.
+
+---
+
+# 🧪 Akun Testing Siap Pakai
+
+Gunakan kredensial ini setelah menjalankan *seeder* untuk masuk ke sistem:
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@absenku.com` | `password123` |
+| **Dosen** | `dosen@absenku.com` | `password123` |
+| **Mahasiswa** | `mahasiswa@absenku.com`| `password123` |
+
+---
+
+# 🌍 Akses Website 
+Website ini dapat diakses dengan menggunakan link :
+
+---
+
+# 👥 Tim Pengembang
+
+Dibangun dengan semangat dan kopi oleh tim kecil yang berdedikasi:
+
+* **Farhan** - Fullstack Lead, Logic Master & Deployment Ops
+* **Abib** - Frontend Specialist (Student UI & Layouts)
+* **Justin** - Frontend Specialist (Admin & Lecturer UI)
+---
+© 2025 AbsenKu Team.

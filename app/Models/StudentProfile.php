@@ -11,27 +11,34 @@ class StudentProfile extends Model
 
     protected $fillable = [
         'npm',
+        'class_name',
         'full_name',
         'phone_number',
     ];
 
-    // Relasi ke User (One-to-One)
+    // Relasi ke user.
     public function user()
     {
-        return $this->hasOne(User::class, 'profile_id');
+        return $this->morphOne(User::class, 'profile');
     }
 
-    // Relasi ke Catatan Presensi (One-to-Many)
+    // Relasi ke catatan presensi.
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class, 'student_id');
     }
 
-    // Relasi ke Mata Kuliah yang diambil (Many-to-Many via course_enrollments)
-    // INI PENTING YANG KAMU INGETIN TADI!
+    // Relasi ke mata kuliah yang diambil.
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_enrollments', 'student_id', 'course_id')
-            ->withTimestamps();
+        return $this->belongsToMany(Course::class, 'course_enrollments', 'student_profile_id', 'course_id')
+            ->withTimestamps()
+            ->withPivot('class_name');
+    }
+
+    // Normalisasi nama kelas saat disimpan.
+    public function setClassNameAttribute($value)
+    {
+        $this->attributes['class_name'] = $value !== null ? strtoupper((string) $value) : null;
     }
 }

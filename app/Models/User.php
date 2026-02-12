@@ -2,44 +2,43 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if ($user->profile) {
+                $user->profile->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
         'profile_id',
+        'profile_type',
+        'profile_photo_path',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -48,14 +47,63 @@ class User extends Authenticatable
         ];
     }
 
-    public function profile()
+    protected function profilePhotoUrl(): Attribute
     {
-        if ($this->role === 'student') {
-            return $this->belongsTo(StudentProfile::class, 'profile_id');
-        } elseif ($this->role === 'lecturer') {
-            return $this->belongsTo(LecturerProfile::class, 'profile_id');
+        return Attribute::make(
+            get: function (mixed $value, array $attributes) {
+                if (isset($attributes['profile_photo_path']) && $attributes['profile_photo_path']) {
+                    $path = $attributes['profile_photo_path'];
+                    if (str_starts_with($path, 'images/')) {
+                        return asset($path);
+                    }
+                    return Storage::disk('public')->url($path);
+                }
+
+                return null;
+            },
+        );
+    }
+
+    // Relasi polimorfik ke profil.
+    public function profile(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    // Helper query untuk profil dosen.
+    public function lecturerProfile()
+    {
+        return $this->profile()->where('profile_type', LecturerProfile::class);
+    }
+
+    // Helper query untuk profil mahasiswa.
+    public function studentProfile()
+    {
+        return $this->profile()->where('profile_type', StudentProfile::class);
+    }
+
+    // Accessor profil dosen.
+    public function getLecturerProfileAttribute()
+    {
+        if ($this->profile_type === LecturerProfile::class) {
+            return $this->profile;
         }
-        // Kalau role admin, mungkin belum punya profil, return null
         return null;
     }
+
+    // Accessor profil mahasiswa.
+    public function getStudentProfileAttribute()
+    {
+        if ($this->profile_type === StudentProfile::class) {
+            return $this->profile;
+        }
+        return null;
+    }
+
+    // Relasi mahasiswa pada mata kuliah.
+    public function students()
+    {
+        return $this->belongsToMany(StudentProfile::class, 'course_enrollments', 'course_id', 'student_profile_id');
+    }
+
 }

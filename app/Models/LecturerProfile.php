@@ -10,18 +10,18 @@ class LecturerProfile extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nip',
+        'nid',
         'full_name',
         'phone_number',
     ];
 
-    // Relasi ke User (One-to-One)
+    // Relasi ke user.
     public function user()
     {
-        return $this->hasOne(User::class, 'profile_id');
+        return $this->morphOne(User::class, 'profile');
     }
 
-    // Relasi ke Mata Kuliah yang diampu (One-to-Many)
+    // Relasi ke mata kuliah yang diajar.
     public function courses()
     {
         return $this->hasMany(Course::class, 'lecturer_id');

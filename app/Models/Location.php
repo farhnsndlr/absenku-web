@@ -16,7 +16,7 @@ class Location extends Model
         'radius_meters',
     ];
 
-    // Relasi ke Sesi yang menggunakan lokasi ini (One-to-Many)
+    // Relasi ke sesi yang memakai lokasi.
     public function sessions()
     {
         return $this->hasMany(AttendanceSession::class, 'location_id');

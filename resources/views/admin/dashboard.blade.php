@@ -1,0 +1,260 @@
+@extends('layouts.dashboard')
+
+@section('title', 'Dashboard Superadmin')
+@section('page-title', 'Dashboard Superadmin')
+
+@section('navigation')
+{{-- BERANDA --}}
+<a href="{{ route('admin.dashboard') }}"
+class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.dashboard') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+</svg>
+<span>Beranda</span>
+</a>
+
+{{-- PENGGUNA --}}
+<a href="{{ route('admin.users.index') }}"
+class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.users.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+</svg>
+<span>Pengguna</span>
+</a>
+
+{{-- MATA KULIAH --}}
+<a href="{{ route('admin.courses.index') }}"
+class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.courses.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+</svg>
+<span>Mata Kuliah</span>
+</a>
+
+{{-- LOKASI --}}
+<a href="{{ route('admin.locations.index') }}"
+class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.locations.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+</svg>
+<span>Lokasi</span>
+</a>
+
+{{-- LAPORAN --}}
+<a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition font-medium {{ request()->routeIs('admin.reports.*') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100' }}">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+</svg>
+<span>Laporan</span>
+</a>
+@endsection
+
+@section('content')
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="flex items-start justify-between mb-4">
+<div class="flex-1">
+<p class="text-sm text-gray-600 mb-2">Total Pengguna</p>
+<h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_students'] + $stats['total_lecturers']) }}</h3>
+</div>
+<div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+</svg>
+</div>
+</div>
+<p class="text-sm text-gray-600">
+<span class="font-medium text-blue-600">{{ number_format($stats['total_students']) }}</span> Mahasiswa •
+<span class="font-medium text-green-600">{{ number_format($stats['total_lecturers']) }}</span> Dosen
+</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+            <p class="text-sm text-gray-600 mb-2">Total Lokasi</p>
+            <h3 class="text-4xl font-bold text-gray-900">{{ number_format($stats['total_locations']) }}</h3>
+        </div>
+        <div class="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </div>
+    </div>
+    <p class="text-sm text-gray-600">
+        <span class="font-medium text-purple-600">{{ number_format($stats['total_courses']) }}</span> Mata Kuliah Aktif
+    </p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+            <p class="text-sm text-gray-600 mb-2">Pembersihan Data Presensi</p>
+            <h3 class="text-xl font-bold text-gray-900">Semester Baru</h3>
+        </div>
+        <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+    </div>
+    <p class="text-sm text-gray-600 mb-4">
+        Hapus seluruh sesi presensi yang sudah selesai/terlewat.
+        User tetap aman, hanya data sesi presensi yang dibersihkan.
+    </p>
+    <form action="{{ route('admin.attendance.purge') }}" method="POST"
+          data-confirm-title="Hapus Data Presensi"
+          data-confirm-message="Hapus seluruh sesi presensi yang sudah selesai/terlewat? Password admin wajib diisi."
+          data-confirm-ok="Hapus"
+          data-confirm-requires-password="1"
+          data-confirm-verify-url="{{ route('admin.attendance.verify-password') }}">
+        @csrf
+        <button type="submit" class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Hapus Data Presensi Lama
+        </button>
+        @error('password')
+            <p class="text-xs text-red-600 mt-2">{{ $message }}</p>
+        @enderror
+    </form>
+</div>
+
+
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="mb-6">
+<h3 class="text-lg font-bold text-gray-900 mb-1">Statistik Tahun Ini ({{ date('Y') }})</h3>
+<p class="text-sm text-gray-600">Pertumbuhan pengguna baru dan total aktivitas absensi bulanan</p>
+</div>
+
+<div class="h-80 relative">
+    <canvas id="usageChart"></canvas>
+</div>
+
+<div class="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
+    <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+        <span class="text-sm text-gray-700">Registrasi Baru</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
+        <span class="text-sm text-gray-700">Total Aktivitas Absensi</span>
+    </div>
+</div>
+
+
+</div>
+@endsection
+
+@push('scripts')
+{{-- Chart.js Library --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // MENGAMBIL DATA RILL DARI CONTROLLER MENGGUNAKAN BLADE JSON_ENCODE
+    // Data ini dikirim dari AdminDashboardController.php
+    const labels = {!! json_encode($monthsLabels) !!};
+    const newUsersData = {!! json_encode($newUsersData) !!};
+    const attendanceActivityData = {!! json_encode($attendanceActivityData) !!};
+
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels, // Gunakan label bulan dari controller
+            datasets: [
+                {
+                    label: 'Registrasi Baru', // Ubah label dataset 1
+                    data: newUsersData,     // Gunakan data riil dataset 1
+                    borderColor: '#f97316', // Warna oranye
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#f97316',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Total Aktivitas Absensi', // Ubah label dataset 2
+                    data: attendanceActivityData,   // Gunakan data riil dataset 2
+                    borderColor: '#14b8a6', // Warna teal
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#14b8a6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false // Legenda sudah dibuat kustom di HTML di atas
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    cornerRadius: 8,
+                    // Menambahkan callback agar tooltip lebih rapi (opsional, menambah pemisah ribuan)
+                    callbacks: {
+                         label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                // Format angka dengan pemisah ribuan ala Indonesia
+                                label += new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: '#f3f4f6', drawTicks: false },
+                    ticks: {
+                        padding: 10,
+                        color: '#6b7280',
+                        font: { size: 12 },
+                        // Pastikan tick sumbu Y hanya menampilkan angka bulat
+                        callback: function(value) {if (value % 1 === 0) {return value;}}
+                    }
+                },
+                x: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { padding: 10, color: '#6b7280', font: { size: 12 } }
+                }
+            }
+        }
+    });
+</script>
+@endpush

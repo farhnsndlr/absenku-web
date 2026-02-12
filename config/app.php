@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------
@@ -83,6 +83,18 @@ return [
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public HTML Path
+    |--------------------------------------------------------------------------
+    |
+    | Override public_path() when the web root lives outside the Laravel
+    | app directory (e.g. cPanel main domain in public_html).
+    |
+    */
+
+    'public_html_path' => env('PUBLIC_HTML_PATH'),
 
     /*
     |--------------------------------------------------------------------------
